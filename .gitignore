@@ -2,9 +2,11 @@
 /dist
 /*.egg-info
 *.pyc
+/*.cmd
 /docs/_build
 /Include
 /Scripts
 /bin
 /Lib
 /share
+/.idea

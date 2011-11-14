@@ -24,4 +24,4 @@ Tests
 
 Performing the unit tests::
 
-    python restclient\tests\tests.py -v
+    python restclient/tests/tests.py -v
