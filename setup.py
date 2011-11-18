@@ -18,6 +18,13 @@ def read_file(name):
 readme = read_file('README.rst')
 changes = read_file('CHANGES.rst')
 
+install_requires = [
+    'httplib2>=0.7.1',
+]
+tests_require = [
+    'nose',
+]
+
 if sys.version_info[:2] < (2, 5):
     install_requires.append('simplejson>=2.2.1')
 
@@ -31,9 +38,10 @@ setup(
     license='MIT',
     platforms=['any'],
     url='http://github.com/joeribekker/restclient',
-    install_requires = [
-    'httplib2>=0.7.1',
-    ],
+    install_requires=install_requires,
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
+    #test_suite='runtests.runtests',
     include_package_data=True,
     packages=find_packages(exclude=('tests', 'examples')),
     zip_safe=False,
