@@ -32,7 +32,7 @@ setup(
     platforms=['any'],
     url='http://github.com/joeribekker/restclient',
     install_requires = [
-    'httplib>=0.7.1',
+    'httplib2>=0.7.1',
     ],
     include_package_data=True,
     packages=find_packages(exclude=('tests', 'examples')),
