@@ -3,57 +3,6 @@ import urllib
 from restclient.exceptions import RestServerException, ResourceException
 
 
-class Resource(object):
-    """
-    Simple URL with utility methods.
-    """
-    def __init__(self, url, client, object_id=None):
-        self.object_id = object_id
-        self.client = client
-
-        base_url = client.api_url
-        
-        if base_url is None:
-            if not url.startswith('http'):
-                raise ResourceException('Cannot resolve resource from relative URL "%s" without a base URL.' % url)
-
-            absolute_url = url
-        else:
-            if not base_url.startswith('http'):
-                raise ResourceException('Cannot resolve resource from relative base URL "%s".' % base_url)
-
-            if url.startswith('http'):
-                if not url.startswith(base_url):
-                    raise ResourceException('Cannot resolve resource from different absolute URL "%s" as base URL "%s".' % (url, base_url))
-
-                absolute_url = url
-            else:
-                if base_url.endswith('/'):
-                    base_url = base_url[:-1]
-                if url.startswith('/'):
-                    url = url[1:]
-                absolute_url = '%s/%s' % (base_url, url)
-        
-        if object_id is not None:
-            if absolute_url.endswith('/'):
-                absolute_url = '%s%s' % (absolute_url, object_id)
-            else:
-                absolute_url = '%s/%s' % (absolute_url, object_id)
-
-        self.absolute_url = absolute_url
-    
-    def __repr__(self):
-        return '<Resource: %s>' % self.absolute_url
-    
-    def get_object_id(self):
-        if self.object_id:
-            return self.object_id
-        else:
-            parts = self.absolute_url.split('/')
-            if len(parts) > 0 and parts[-1] != '':
-                return parts[-1]
-            raise ResourceException('Cannot get an object ID from container resource.')
-
 class RestManagerDescriptor(object):
     """
     This class ensures managers aren't accessible via model instances. For
@@ -68,6 +17,50 @@ class RestManagerDescriptor(object):
         return self.manager
 
 
+import re
+def reverse(pattern, **kwargs):
+    template = pattern.strip('^$')
+
+    start = re.compile(r'\(\?P\<')
+    end = re.compile(r'\>[^\)]*\)')
+    
+    template = start.sub('%(', template)
+    template = end.sub(')s', template)
+    
+    try:
+        result = template % kwargs
+    except KeyError, e:
+        raise ValueError('The URL pattern requires %s as named argument.' % e)
+    
+    return result
+
+
+class ResourcePattern(object):
+
+    def __init__(self, pattern, obj_path=None):
+        self.pattern = pattern
+        self.obj_path = obj_path
+
+    @classmethod
+    def parse(cls, obj):
+        if isinstance(obj, tuple):
+            return cls(*obj)
+        return cls(obj)
+
+    def clean(self, response):
+        if self.obj_path:
+            return response.content[self.obj_path]
+        return response.content 
+    
+    def get_url(self, query='', **kwargs):
+        if query:
+            query = '?%s' % urllib.urlencode(query)
+        return '%s%s' % (reverse(self.pattern, **kwargs), query)
+
+    def get_absolute_url(self, root='', query='', **kwargs):
+        return '%s%s' % (root, self.get_url(query, **kwargs))
+
+    
 class RestManager(object):
     
     VALID_STATUS_RESPONSES = (
@@ -78,62 +71,31 @@ class RestManager(object):
     def __init__(self):
         self.object_class = None
 
-    def get_or_create(self, id, data=None, client=None):
-        try:
-            return self.get(id, client=client), False
-        except RestServerException:
-            return self.create(data, client=client), True
-    
-    def all(self, client=None):
-        return self.params(client=client)
-        
-    def params(self, query=None, client=None):
-        c = client or default_client
+    def all(self, client=None, query=None, **kwargs):
+        opts = self.object_class._meta
+        # FIXME: This can be done once and retrieved every time...
+        rd = ResourcePattern.parse(opts.list)
+        absolute_url = rd.get_absolute_url(opts.root, **kwargs)
 
-        resource = Resource(self.object_class._meta.base_resource, c)
-
-        qs = ''
-        if query is not None:
-            qs = '?%s' % urllib.urlencode(query)
-
-        response = c.get('%s/%s' % (resource.absolute_url, qs))
+        response = client.get(absolute_url)
 
         if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (resource.absolute_url, response.status_code, response.content))
-    
-        # TODO: Need a lazy RestObject to fill the list... Read into Django's QuerySet.
-        return response.content[self.object_class._meta.field_name]
-    
-    def get(self, id, client=None):
-        c = client or default_client
+            raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
         
-        resource = Resource(self.object_class._meta.base_resource, c, id)
-        response = c.get(resource.absolute_url)
-
-        if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (resource.absolute_url, response.status_code, response.content))
+        return rd.clean(response)
     
-        return self.object_class(response.content, client=c, resource=resource)
+    def get(self, client=None, query=None, **kwargs):
+        opts = self.object_class._meta
+        # FIXME: This can be done once and retrieved every time...
+        rd = ResourcePattern.parse(opts.item)
+        absolute_url = rd.get_absolute_url(opts.root, **kwargs)
 
-    def create(self, data=None, client=None):
-        if data is None:
-            data = {}
-
-        c = client or default_client
-
-        resource = Resource(self.object_class._meta.base_resource, c)
-        response = c.post('%s/' % resource.absolute_url, data=data)
-
-        if response.status_code != 201:
-            raise RestServerException('Cannot create "%s" (%d): %s' % (resource.absolute_url, response.status_code, response.content))
-
-        # Check for path as return value. This is *NOT* a relative URL from the
-        # API URL but rather the complete path without the scheme and domain.
-        # Specifically, this behaviour is done by the Django test client.
-        created_resource = Resource(response['Location'], c)
-        # The above resource can therefore be incorrect. The object ID is fine
-        # though.
-        return self.get(created_resource.get_object_id(), client=c)
+        response = client.get(absolute_url)
+        
+        if response.status_code not in self.VALID_STATUS_RESPONSES:
+            raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
+    
+        return self.object_class(response.content, client=client, absolute_url=absolute_url)
 
 
 class RelatedResource(object):
@@ -141,6 +103,7 @@ class RelatedResource(object):
         self._field = field
     
     def _create_new_class(self, name):
+        # FIXME: This will be a RestResource!
         class_name = name.title().replace('_', '')
         return type(str('%sRestObject' % class_name), (RestObject,), {'__module__': '%s.auto' % RestObject.__module__})
         
@@ -149,17 +112,15 @@ class RelatedResource(object):
             return self
 
         if not hasattr(instance, '_cache_%s' % self._field):
-            resource = Resource(instance[self._field], instance.client)
-            response = instance.client.get(resource.absolute_url)
+            absolute_url = self._field
+            response = instance.client.get(absolute_url)
             if response.status_code == 404:
                 return None
             elif response.status_code not in [200, 304]:
-                raise RestServerException('Cannot get "%s" (%d): %s' % (resource.absolute_url, response.status_code, response.content))
+                raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
 
-            # NOTE: For now, use a default: RechartedObject
-            #resource_class = instance.definition.get(self._field, RestObject)
             resource_class = self._create_new_class(self._field)
-            setattr(instance, '_cache_%s' % self._field, resource_class(response.content, client=instance.client, resource=resource))
+            setattr(instance, '_cache_%s' % self._field, resource_class(response.content, client=instance.client, absolute_url=absolute_url))
 
         return getattr(instance, '_cache_%s' % self._field, None)
 
@@ -168,36 +129,38 @@ class RelatedResource(object):
             raise AttributeError('%s must be accessed via instance' % self._field.name)
 
         if isinstance(value, dict):
-            resource = Resource(instance[self._field], instance.client)
-            # FIXME: Ofcourse, this should not always be PUT!
-            response = instance.client.put(resource.absolute_url, value)
+            absolute_url = self._field
+            response = instance.client.put(absolute_url, value)
             if response.status_code not in [200, 201, 304]:
-                raise RestServerException('Cannot put "%s" (%d): %s' % (resource.absolute_url, response.status_code, response.content))
+                raise RestServerException('Cannot put "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
 
-            # NOTE: For now, use a default: RechartedObject
-            #resource_class = instance.definition.get(self._field, RestObject)
             resource_class = self._create_new_class(self._field)
-            setattr(instance, '_cache_%s' % self._field, resource_class(value, client=instance.client, resource=resource))
+            setattr(instance, '_cache_%s' % self._field, resource_class(value, client=instance.client, absolute_url=absolute_url))
         else:
             setattr(instance, '_cache_%s' % self._field, value)
 
 
 class RestObjectOptions(object):
-    DEFAULT_NAMES = ('base_resource', 'field_name')
+    DEFAULT_NAMES = ('list', 'item', 'root')
     
     def __init__(self, meta):
-        # Represents this RestObject's resource. For example: If the absolute URL
-        # is http://localhost/api/foo/1, this is also its resource.
-        self.base_resource = ''
+        # Represents this RestObject's list resource. For example: A list of 
+        # objects can be found at http://localhost/api/book/.
+        self.list = ''
 
-        # Represents this RestObject's base resource. For example: If the absolute
-        # URL is http://localhost/api/foo/1, the base resource would be:
-        # http://localhost/api/foo (mind you, no trailing slash).
-        # The base resource may also be relative to the client's API URL. For
-        # example: foo
-        self.field_name = ''
+        # Represents this RestObject's item resource. For example: A single
+        # object of this resource can be found at http://localhost/api/book/1.
+        self.item = ''
+
+        # Indicates the root of the resource. In some cases, a resource is
+        # found on a different domain or service. For example: If the regular
+        # resource can be found on http://localhost/api/ the search engine
+        # might be found on http://search.localhost/api/. If so, set root to
+        # this different URL.
+        self.root = ''
 
         # Next, apply any overridden values from 'class Meta'.
+        # TODO: This might be a good place to store ResourcePatterns.
         if meta:
             meta_attrs = meta.__dict__.copy()
             for name in meta.__dict__:
@@ -257,7 +220,6 @@ class RestObjectBase(type):
 class RestObject(object):
     __metaclass__ = RestObjectBase
 
-    definition = {}
     objects = None
 
     def __init__(self, data=None, **kwargs):
@@ -266,17 +228,18 @@ class RestObject(object):
         else:
             self._obj = {}
 
-        self._client = kwargs.pop('client', None)
-        self.resource = kwargs.pop('resource', None)
+        self.client = kwargs.pop('client', None)
+        self.absolute_url = kwargs.pop('absolute_url', None)
 
         for k, v in self._obj.items():
             if isinstance(v, basestring) and v.startswith(self.client.api_url):
-                # FIXME: What to do with functions and/or attributes that exist?
-                if hasattr(self.__class__, k):
-                    continue
-                # FIXME: Hmm, runtime defined class attributes.
-                setattr(self.__class__, k, RelatedResource(k))
+                if not hasattr(self.__class__, k):
+                    setattr(self.__class__, k, RelatedResource(k))
 
+    def get(self, key):
+        # TODO: Implement to access inaccessible 
+        pass
+                
     def __setitem__(self, key, value):
         self._obj[key] = value
 
@@ -287,8 +250,4 @@ class RestObject(object):
         return self._obj[key]
 
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self.resource.absolute_url)
-    
-    @property
-    def client(self):
-        return self._client or default_client
+        return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)

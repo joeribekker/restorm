@@ -1,5 +1,5 @@
 import os
-import unittest
+from unittest import TestCase
 
 try:
     import json
@@ -11,7 +11,7 @@ from restclient.tests.mock import SimpleMockClient, StringResponse, FileResponse
 from restclient.rest import RestObject, RestManager, RestObjectOptions
 
 
-class SimpleMockClientTests(unittest.TestCase):
+class SimpleMockClientTests(TestCase):
     
     def test_request_string_response(self):
         predefined_response = StringResponse(
@@ -85,39 +85,43 @@ class SimpleMockClientTests(unittest.TestCase):
         self.assertEqual(response['Content-Type'], 'text/html')
 
 
-class RestObjectTests(unittest.TestCase):
+class RestObjectTests(TestCase):
     
     def setUp(self):
-        self.client = SimpleMockClient('http://localhost/api', 'user', 'pw')
+        self.client = SimpleMockClient('http://localhost/api/', 'user', 'pw')
     
     def test_meta_class(self):
 
         class Book(RestObject):
             class Meta:
-                base_resource = 'book'
-                field_name = 'book_set'
+                list = (r'^book/$', 'book_set')
+                item = r'^book/(?P<id>\d)$'
 
         class Author(RestObject):
             class Meta:
-                base_resource = 'author'
+                item = r'^author/(?P<id>\d)$'
+                root = 'http://somedomain/api/'
                 
         class Store(RestObject):
             pass
 
         self.assertTrue(hasattr(Book, '_meta'))
         self.assertTrue(isinstance(Book._meta, RestObjectOptions))
-        self.assertEqual(Book._meta.base_resource, 'book')
-        self.assertEqual(Book._meta.field_name, 'book_set')
+        self.assertEqual(Book._meta.list, (r'^book/$', 'book_set'))
+        self.assertEqual(Book._meta.item, r'^book/(?P<id>\d)$')
+        self.assertEqual(Book._meta.root, '')
 
         self.assertTrue(hasattr(Author, '_meta'))
         self.assertTrue(isinstance(Author._meta, RestObjectOptions))
-        self.assertEqual(Author._meta.base_resource, 'author')
-        self.assertEqual(Author._meta.field_name, '')
+        self.assertEqual(Author._meta.list, '')
+        self.assertEqual(Author._meta.item, r'^author/(?P<id>\d)$')
+        self.assertEqual(Author._meta.root, 'http://somedomain/api/')
         
         self.assertTrue(hasattr(Store, '_meta'))
         self.assertTrue(isinstance(Store._meta, RestObjectOptions))
-        self.assertEqual(Store._meta.base_resource, '')
-        self.assertEqual(Store._meta.field_name, '')
+        self.assertEqual(Store._meta.list, '')
+        self.assertEqual(Store._meta.item, '')
+        self.assertEqual(Store._meta.root, '')
 
         self.assertNotEqual(Author._meta, Store._meta)
         self.assertNotEqual(Book._meta, Author._meta)
@@ -161,11 +165,13 @@ class RestObjectTests(unittest.TestCase):
         class Book(RestObject):
             objects = BookManager()
             class Meta:
-                base_resource = 'book'
+                list = (r'^book/$', 'book_set')
+                item = r'^book/(?P<id>\d)$'
                 
         class Author(RestObject):
             class Meta:
-                base_resource = 'author'
+                item = r'^book/(?P<id>\d)$'
+
 
         self.assertTrue(isinstance(Book.objects, BookManager))
         self.assertTrue(hasattr(Book.objects, 'filter_on_author'))
@@ -213,7 +219,8 @@ class RestObjectTests(unittest.TestCase):
                 return self['title'].title()
             
             class Meta:
-                base_resource = 'book'
+                list = (r'^book/$', 'book_set')
+                item = r'^book/(?P<id>\d)$'
         
         self.assertTrue(hasattr(Book, 'get_title'))
         self.assertFalse(hasattr(RestObject, 'get_title'))
@@ -223,7 +230,7 @@ class RestObjectTests(unittest.TestCase):
         self.assertFalse(hasattr(Book, 'some_instance_attribute_before_init'))
         self.assertFalse(hasattr(Book, 'some_instance_attribute_after_init'))
         
-        book = Book.objects.get('1', client=self.client)
+        book = Book.objects.get(client=self.client, id=1)
         self.assertEqual(book['title'], book_data['title'])
         self.assertTrue(hasattr(book, 'get_title'))
         self.assertEqual(book.get_title(), book_data['title'].title())
@@ -257,12 +264,13 @@ class RestObjectTests(unittest.TestCase):
         
         class Book(RestObject):
             class Meta:
-                base_resource = 'book'
+                list = (r'^book/$', 'book_set')
+                item = r'^book/(?P<id>\d)$'
                 
             def author(self):
                 return 'me'
         
-        book = Book.objects.get('1', client=self.client)
+        book = Book.objects.get(client=self.client, id=1)
         
         self.assertEqual(book['author'], book_data['author'])
         self.assertTrue(hasattr(book, 'author'))
@@ -302,14 +310,15 @@ class RestObjectTests(unittest.TestCase):
         # Actual testing
         class Book(RestObject):
             class Meta:
-                base_resource = 'book'
+                list = (r'^book/$', 'book_set')
+                item = r'^book/(?P<id>\d)$'
         
         # Before anything is instantiated, Book and RestObject should not have
         # attributes referring to related objects.
         self.assertFalse(hasattr(Book, 'author'))
         self.assertFalse(hasattr(RestObject, 'author'))
 
-        book = Book.objects.get('1', client=self.client)
+        book = Book.objects.get(client=self.client, id=1)
 
         # The book has a registered class, Book.
         self.assertTrue(isinstance(book, Book))
@@ -321,7 +330,7 @@ class RestObjectTests(unittest.TestCase):
         self.assertFalse(hasattr(RestObject, 'author'))
         
         # Test basic book resource properties.
-        self.assertEqual(book.resource.absolute_url, 'http://localhost/api/book/1')
+        self.assertEqual(book.absolute_url, 'http://localhost/api/book/1')
         self.assertEqual(book['title'], book_data['title'])
         self.assertEqual(book['author'], book_data['author'])
 
@@ -347,7 +356,7 @@ class RestObjectTests(unittest.TestCase):
         self.assertFalse(hasattr(author, 'author'))
         
         # Test basic author resource properties.
-        self.assertEqual(author.resource.absolute_url, 'http://localhost/api/author/1')
+        self.assertEqual(author.absolute_url, 'http://localhost/api/author/1')
         self.assertEqual(author['name'], author_data['name'])
 
         city = author.born_in
@@ -369,8 +378,5 @@ class RestObjectTests(unittest.TestCase):
         self.assertFalse(hasattr(book, '_cache_born_in'))
         
         # Test basic city resource properties.
-        self.assertEqual(city.resource.absolute_url, 'http://localhost/api/city/1')
+        self.assertEqual(city.absolute_url, 'http://localhost/api/city/1')
         self.assertEqual(city['name'], city_data['name'])
-
-if __name__ == '__main__':
-    unittest.main()
