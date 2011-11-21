@@ -1,6 +1,6 @@
 import os
 
-from restclient.base import Client, Response
+from restclient.clients.base import Client, Response
 
 
 class MockResponse(object):
