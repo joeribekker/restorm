@@ -52,12 +52,16 @@ class ResourcePattern(object):
             return response.content[self.obj_path]
         return response.content 
     
-    def get_url(self, query='', **kwargs):
+    def get_url(self, query=None, **kwargs):
         if query:
             query = '?%s' % urllib.urlencode(query)
+        else:
+            query = ''
         return '%s%s' % (reverse(self.pattern, **kwargs), query)
 
-    def get_absolute_url(self, root='', query='', **kwargs):
+    def get_absolute_url(self, root=None, query=None, **kwargs):
+        if root is None:
+            root = ''
         return '%s%s' % (root, self.get_url(query, **kwargs))
 
     
@@ -75,12 +79,12 @@ class RestManager(object):
         opts = self.object_class._meta
         # FIXME: This can be done once and retrieved every time...
         rd = ResourcePattern.parse(opts.list)
-        absolute_url = rd.get_absolute_url(opts.root, **kwargs)
+        absolute_url = rd.get_absolute_url(root=opts.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
 
         if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
+            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request['PATH_INFO'], response.status_code, response.content))
         
         return rd.clean(response)
     
@@ -88,14 +92,14 @@ class RestManager(object):
         opts = self.object_class._meta
         # FIXME: This can be done once and retrieved every time...
         rd = ResourcePattern.parse(opts.item)
-        absolute_url = rd.get_absolute_url(opts.root, **kwargs)
+        absolute_url = rd.get_absolute_url(root=opts.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
         
         if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
+            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request['PATH_INFO'], response.status_code, response.content))
     
-        return self.object_class(response.content, client=client, absolute_url=absolute_url)
+        return self.object_class(response.content, client=client, absolute_url=response.request['PATH_INFO'])
 
 
 class RelatedResource(object):
@@ -112,7 +116,7 @@ class RelatedResource(object):
             return self
 
         if not hasattr(instance, '_cache_%s' % self._field):
-            absolute_url = self._field
+            absolute_url = instance[self._field]
             response = instance.client.get(absolute_url)
             if response.status_code == 404:
                 return None
@@ -129,7 +133,7 @@ class RelatedResource(object):
             raise AttributeError('%s must be accessed via instance' % self._field.name)
 
         if isinstance(value, dict):
-            absolute_url = self._field
+            absolute_url = instance[self._field]
             response = instance.client.put(absolute_url, value)
             if response.status_code not in [200, 201, 304]:
                 raise RestServerException('Cannot put "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
@@ -232,7 +236,8 @@ class RestObject(object):
         self.absolute_url = kwargs.pop('absolute_url', None)
 
         for k, v in self._obj.items():
-            if isinstance(v, basestring) and v.startswith(self.client.api_url):
+            # FIXME: Checking for http only is a bit crude.
+            if isinstance(v, basestring) and v.startswith('http'):
                 if not hasattr(self.__class__, k):
                     setattr(self.__class__, k, RelatedResource(k))
 

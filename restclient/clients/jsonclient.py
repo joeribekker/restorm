@@ -9,17 +9,6 @@ except ImportError:
     import simplejson as json
 
 
-class JSONResponse(Response):
-    def __init__(self, client, response, request):
-        super(Response, self).__init__(client, response, request)
-
-        # Replace the content with Python.
-        if 'Content-Type' in self and self['Content-Type'].startswith('application/json'):
-            self.content = json.loads(self.content, object_hook=RestObject)
-        else:
-            raise ValueError
-
-            
 class JSONClient(Client):
     """
     Client that handles JSON requests and responses.
@@ -32,18 +21,20 @@ class JSONClient(Client):
             'Content-Type': 'application/json',
         })
 
-        response = super(Client, self).request(uri, method, body, headers, redirections, connection_type)
+        response = super(JSONClient, self).request(uri, method, body, headers, redirections, connection_type)
         
-        return Response(self, response, uri, method, headers)
+        response.content = json.loads(response.content)
+
+        return response
 
     def get(self, uri, data=None):
-        return self.get(uri, data)
+        return super(JSONClient, self).get(uri, data)
 
     def post(self, uri, data):
-        return self.post(uri, json.dumps(data))
+        return super(JSONClient, self).post(uri, json.dumps(data))
 
     def put(self, uri, data):
-        return self.put(uri, json.dumps(data))
+        return super(JSONClient, self).put(uri, json.dumps(data))
 
     def delete(self, uri):
-        return self.delete(uri)
+        return super(JSONClient, self).delete(uri)

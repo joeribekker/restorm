@@ -46,13 +46,13 @@ class Client(httplib2.Http):
     def get(self, uri, data=None):
         if data is None:
             data = {}
-        return self.request(uri, 'GET', data)
+        return self.request(uri, 'GET')#, data)
 
     def post(self, uri, data):
-        return self.request(uri, 'POST', json.dumps(data))
+        return self.request(uri, 'POST', data)
 
     def put(self, uri, data):
-        return self.request(uri, 'PUT', json.dumps(data))
+        return self.request(uri, 'PUT', data)
 
     def delete(self, uri):
         return self.request(uri, 'DELETE')
