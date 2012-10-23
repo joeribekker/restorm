@@ -23,6 +23,10 @@ install_requires = [
 ]
 tests_require = [
     'nose',
+    'unittest2',
+]
+examples_require = [
+    'oauth2',
 ]
 
 if sys.version_info[:2] < (2, 5):
@@ -40,7 +44,10 @@ setup(
     url='http://github.com/joeribekker/restclient',
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require},
+    extras_require={
+        'test': tests_require,
+        'examples': examples_require,
+    },
     #test_suite='runtests.runtests',
     include_package_data=True,
     packages=find_packages(exclude=('tests', 'examples')),
