@@ -1,124 +1,7 @@
-import os
-
 from unittest2 import TestCase
 
-from restclient.tests.mock import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient
-from restclient.rest import RestObject, RestManager, RestObjectOptions, Resource
-
-
-class MockClientTests(TestCase):
-    
-    def test_request_mock_response(self):
-        obj = {}
-        
-        predefined_response = MockResponse(
-            {'Foo': 'Bar', 'Status': 200},
-            obj
-        )
-        
-        client = MockClient(responses=[predefined_response,])
-        url = '/some/url'
-        response = client.get(url)
-        
-        self.assertEqual(response.content, obj)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Foo'], 'Bar')
-        self.assertEqual(response.request.uri, url)
-
-    def test_request_string_response(self):
-        predefined_response = StringResponse(
-            {'Foo': 'Bar', 'Status': 200},
-            {}
-        )
-        
-        client = MockClient(responses=[predefined_response,])
-        url = '/some/url'
-        response = client.get(url)
-        
-        self.assertEqual(response.content, '{}')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Foo'], 'Bar')
-        self.assertEqual(response.request.uri, url)
-
-    def test_file_response_with_unknown_file(self):
-        non_existent_file = '__does_not_exist__.tmp'
-        self.assertFalse(os.path.isfile(non_existent_file))
-        self.assertRaises(ValueError, FileResponse, {}, non_existent_file)
-
-    def test_request_file_response(self):
-        predefined_response = FileResponse(
-            {'Foo': 'Bar', 'Content-Type': 'text/python', 'Status': 200},
-            '%s' % __file__
-        )
-        
-        client = MockClient(responses=[predefined_response,])
-        url = '/some/url'
-        response = client.get(url)
-        
-        self.assertTrue(self.__class__.__name__ in response.content)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/python')
-        self.assertEqual(response['Foo'], 'Bar')
-        self.assertEqual(response.request.uri, url)
-
-
-class MockApiClientTests(TestCase):
-    def setUp(self):
-        self.responses={
-            '/api/book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
-                'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
-            },
-            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
-            '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
-            '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
-        }
-        self.client = MockApiClient(responses=self.responses, root_uri='http://www.example.com')
-        
-    def test_get(self):
-        response = self.client.get('/api/book/')
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, self.responses['/api/book/']['GET'][1])
-        
-    def test_post(self):
-        response = self.client.post('/api/book/', {})
-        
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['Location'], self.responses['/api/book/']['POST'][0]['Location'])
-        self.assertEqual(response.content, self.responses['/api/book/']['POST'][1])
-        
-    def test_page_not_found(self):
-        uri = '/api/book/2'
-        self.assertTrue(uri not in self.responses)
-
-        response = self.client.get(uri)
-
-        self.assertEqual(response.status_code, 404)
-
-    def test_method_not_allowed(self):
-        response = self.client.put('/api/book/1', {})
-
-        self.assertEqual(response.status_code, 405)
-        
-    def test_rest_client_interaction(self):
-        
-        class Book(Resource):
-            class Meta:
-                list = r'^/api/book/$'
-                item = r'^/api/book/(?P<id>\d)$'
-                
-        class Author(Resource):
-            class Meta:
-                list = r'^/api/author/$'
-                item = r'^/api/author/(?P<id>\d)$'
-
-        book = Book.objects.get(id=1, client=self.client)
-        self.assertEqual(book['name'], self.responses['/api/book/1']['GET'][1]['name'])
-        self.assertEqual(book['author'], self.responses['/api/book/1']['GET'][1]['author'])
-        
-        author = book.author
-        self.assertEqual(author['name'], self.responses['/api/author/1']['GET'][1]['name'])
+from restclient.clients.mockclient import MockClient, MockResponse
+from restclient.rest import RestObject, RestManager, ResourceOptions, Resource
 
 
 class RestObjectTests(TestCase):
@@ -128,33 +11,33 @@ class RestObjectTests(TestCase):
     
     def test_meta_class(self):
 
-        class Book(RestObject):
+        class Book(Resource):
             class Meta:
                 list = (r'^book/$', 'book_set')
                 item = r'^book/(?P<id>\d)$'
 
-        class Author(RestObject):
+        class Author(Resource):
             class Meta:
                 item = r'^author/(?P<id>\d)$'
                 root = 'http://somedomain/api/'
                 
-        class Store(RestObject):
+        class Store(Resource):
             pass
 
         self.assertTrue(hasattr(Book, '_meta'))
-        self.assertTrue(isinstance(Book._meta, RestObjectOptions))
+        self.assertTrue(isinstance(Book._meta, ResourceOptions))
         self.assertEqual(Book._meta.list, (r'^book/$', 'book_set'))
         self.assertEqual(Book._meta.item, r'^book/(?P<id>\d)$')
         self.assertEqual(Book._meta.root, '')
 
         self.assertTrue(hasattr(Author, '_meta'))
-        self.assertTrue(isinstance(Author._meta, RestObjectOptions))
+        self.assertTrue(isinstance(Author._meta, ResourceOptions))
         self.assertEqual(Author._meta.list, '')
         self.assertEqual(Author._meta.item, r'^author/(?P<id>\d)$')
         self.assertEqual(Author._meta.root, 'http://somedomain/api/')
         
         self.assertTrue(hasattr(Store, '_meta'))
-        self.assertTrue(isinstance(Store._meta, RestObjectOptions))
+        self.assertTrue(isinstance(Store._meta, ResourceOptions))
         self.assertEqual(Store._meta.list, '')
         self.assertEqual(Store._meta.item, '')
         self.assertEqual(Store._meta.root, '')
@@ -168,10 +51,10 @@ class RestObjectTests(TestCase):
         By default, there should be a default manager on RestObject.
         """
 
-        class Book(RestObject):
+        class Book(Resource):
             pass
 
-        class Author(RestObject):
+        class Author(Resource):
             pass
                 
         self.assertTrue(isinstance(Book.objects, RestManager))
@@ -198,13 +81,13 @@ class RestObjectTests(TestCase):
             def filter_on_author(self, author_resource):
                 return self.params([('author', author_resource),])
         
-        class Book(RestObject):
+        class Book(Resource):
             objects = BookManager()
             class Meta:
                 list = (r'^book/$', 'book_set')
                 item = r'^book/(?P<id>\d)$'
                 
-        class Author(RestObject):
+        class Author(Resource):
             class Meta:
                 item = r'^author/(?P<id>\d)$'
 
@@ -242,7 +125,7 @@ class RestObjectTests(TestCase):
         )
         self.client.responses.append(response_book)
 
-        class Book(RestObject):
+        class Book(Resource):
             some_class_attribute = 'foobar'
             
             def __init__(self, *args, **kwargs):
@@ -297,7 +180,7 @@ class RestObjectTests(TestCase):
         )
         self.client.responses.append(response_author)
         
-        class Book(RestObject):
+        class Book(Resource):
             class Meta:
                 list = (r'^book/$', 'book_set')
                 item = r'^book/(?P<id>\d)$'
@@ -343,7 +226,7 @@ class RestObjectTests(TestCase):
         self.client.responses.append(response_city)
         
         # Actual testing
-        class Book(RestObject):
+        class Book(Resource):
             class Meta:
                 list = (r'^book/$', 'book_set')
                 item = r'^book/(?P<id>\d)$'

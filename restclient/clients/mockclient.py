@@ -1,7 +1,7 @@
 import urlparse
 import os
 
-from restclient.clients.base import Client, Response, ClientMixin
+from restclient.clients.base import ClientMixin
 
 
 class MockResponse(object):

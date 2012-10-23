@@ -145,15 +145,15 @@ class RelatedResource(object):
             setattr(instance, '_cache_%s' % self._field, value)
 
 
-class RestObjectOptions(object):
+class ResourceOptions(object):
     DEFAULT_NAMES = ('list', 'item', 'root')
     
     def __init__(self, meta):
-        # Represents this RestObject's list resource. For example: A list of 
+        # Represents this Resource's list URI pattern. For example: A list of 
         # objects can be found at http://localhost/api/book/.
         self.list = ''
 
-        # Represents this RestObject's item resource. For example: A single
+        # Represents this Resource's item URI pattern. For example: A single
         # object of this resource can be found at http://localhost/api/book/1.
         self.item = ''
 
@@ -207,7 +207,7 @@ class RestObjectBase(type):
         else:
             meta = attr_meta
         base_meta = getattr(new_class, '_meta', None)
-        setattr(new_class, '_meta', RestObjectOptions(meta))
+        setattr(new_class, '_meta', ResourceOptions(meta))
 
         # Assign manager.
         manager = attrs.pop('objects', None)
