@@ -1,11 +1,21 @@
+==========
 RestClient
 ==========
 
 Inspired by Django's ORM, **RestClient** allows you to interact with resources
 as if they were objects.
 
+Description
+===========
+
+Most RESTful webservices are very easy to access with very little code.
+**RestClient** is just a small layer on top of ``httplib2.Http`` to get a
+response from a webservice. However, instead of regular Python ``dict``
+objects, you'll get a ``dict``-like object that knows how to access related
+resources as well.
+
 Features
-~~~~~~~~
+--------
 
 * Object relational mapping of webservice resources.
 * Flexible client architecture that can be used with your own or third party
@@ -14,17 +24,11 @@ Features
   complete webservices.
 
 
-Description
------------
-
-Most RESTful webservices are very easy to access with very little code.
-**RestClient** is just a small layer on top of ``httplib2.Http`` to get a
-response from a webservice. However, instead of regular Python ``dict``
-objects, you'll get a ``dict``-like object that knows how to access related
-resources as well.
+Getting started
+===============
 
 Create a mock webservice
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 In order to test your client, you can emulate a whole webservice. Sometimes
 it's faster to use single predefined response, using the ``MockClient`` and 
@@ -51,7 +55,7 @@ short, both lists contain only 1 items::
     )
 
 Defining resources
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Setup your client side resource definitions::
 
@@ -62,7 +66,7 @@ Setup your client side resource definitions::
             root = 'http://www.example.com/api/'
 
 Make it work
-~~~~~~~~~~~~
+------------
 
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
     >>> book['name'] # Get the value of the key "name".
@@ -75,14 +79,14 @@ Make it work
 
 
 Install
--------
+=======
 
 It's not yet in PyPI. If you want to use it in your project, you should know 
 that this is still a work in progress and you probably know what to do.
 
 
 Contribute
-----------
+==========
 
 #. Get the code from Github::
 
@@ -101,8 +105,9 @@ Contribute
 #. Start hacking!
 
 Testing
--------
+=======
 
 Performing the unit tests::
 
     python setup.py test
+
