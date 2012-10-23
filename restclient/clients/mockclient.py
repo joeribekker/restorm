@@ -4,7 +4,7 @@ import os
 from restclient.clients.base import ClientMixin
 
 
-class MockResponse(object):
+class MockResponse(list):
     """
     Main class for mocked responses. Headers can be provided as dict. The 
     content is simply returned as response and is usually a string but can be
@@ -13,6 +13,8 @@ class MockResponse(object):
     def __init__(self, headers, content):
         self.headers = headers
         self.content = content
+
+        super(MockResponse, self).__init__((headers, content))
 
 
 class StringResponse(MockResponse):
@@ -90,7 +92,7 @@ class MockClient(BaseMockClient, ClientMixin):
     >>> client = MockClient('http://mockserver/', responses=[desired_response,])
     >>> response = client.get('/')
     >>> response.content
-    {}
+    u'{}'
     >>> response.status_code
     200
     """
@@ -130,7 +132,10 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     """
     A client that emulates communicating with an entire mock API.
     
-    Specify each resource and some headers and/or content to return.
+    Specify each resource and some headers and/or content to return. You can
+    use a ``tuple`` as response containing the headers and content, or use one
+    of the available ``MockResponse`` (sub)classes to return the contents of a
+    string or file.
     
     **Example**
     
@@ -141,7 +146,7 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     ...     },
     ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': ''http://www.example.com/api/author/1'})},
     ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': ''http://www.example.com/api/author/1'}])},
-    ...     '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
+    ...     '/api/author/1': {'GET': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
     ... }, root_uri='http://www.example.com')
     """
     pass
