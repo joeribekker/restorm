@@ -48,11 +48,10 @@ setup(
         'test': tests_require,
         'examples': examples_require,
     },
-    #test_suite='runtests.runtests',
     include_package_data=True,
     packages=find_packages(exclude=('tests', 'examples')),
     zip_safe=False,
-    test_suite='runtests.runtests',
+    test_suite='nose.collector',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
