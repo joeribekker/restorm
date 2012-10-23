@@ -54,8 +54,8 @@ short, both lists contain only 1 items::
         root_uri='http://www.example.com'
     )
 
-Defining resources
-------------------
+Define resources
+----------------
 
 Setup your client side resource definitions::
 

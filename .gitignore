@@ -1,5 +1,4 @@
-﻿/restclient/settings_local.py
-/.cache
+﻿/.cache
 /build
 /dist
 /*.egg-info
@@ -12,3 +11,4 @@
 /Lib
 /share
 /.idea
+settings_local.py

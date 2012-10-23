@@ -5,12 +5,12 @@ from unittest2 import TestCase, skipIf
 from restclient.examples.twitter import api
 
 try:
-    from restclient.settings_local import TWITTER_SETTINGS
+    from settings_local import TWITTER_SETTINGS
 except ImportError:
     TWITTER_SETTINGS = None
 
 
-@skipIf(TWITTER_SETTINGS is None, 'You must provide "TWITTER_SETTINGS" to your "settings_local.py".')
+@skipIf(TWITTER_SETTINGS is None, 'You must provide "TWITTER_SETTINGS" in your "settings_local.py". See: "settings_local_example.py".')
 class TwitterTests(TestCase):
     
     def setUp(self):
