@@ -1,8 +1,9 @@
-﻿.cache
+﻿/restclient/settings_local.py
+/.cache
 /build
 /dist
 /*.egg-info
-*.pyc
+/*.pyc
 /*.cmd
 /docs/_build
 /Include
