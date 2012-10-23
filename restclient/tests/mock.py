@@ -1,12 +1,14 @@
+import urlparse
 import os
 
-from restclient.clients.base import Client, Response
+from restclient.clients.base import Client, Response, ClientMixin
 
 
 class MockResponse(object):
     """
-    Base class for mocked responses. Headers can be provided as dict. The 
-    content is simply returned as response and is usually a string.
+    Main class for mocked responses. Headers can be provided as dict. The 
+    content is simply returned as response and is usually a string but can be
+    any type of object.
     """
     def __init__(self, headers, content):
         self.headers = headers
@@ -21,7 +23,8 @@ class StringResponse(MockResponse):
 
     >>> desired_response = StringResponse({'Status': 200}, '{}')
     """
-    pass
+    def __init__(self, headers, content):
+        super(StringResponse, self).__init__(headers, unicode(content))
 
 
 class FileResponse(MockResponse):
@@ -30,7 +33,7 @@ class FileResponse(MockResponse):
 
     **Example**
     
-    >>> desired_response = StringResponse({'Status': 200}, 'response.json')
+    >>> desired_response = FileResponse({'Status': 200}, 'response.json')
     """
     def __init__(self, headers, filepath):
         if not os.path.isfile(filepath):
@@ -43,7 +46,36 @@ class FileResponse(MockResponse):
         super(FileResponse, self).__init__(headers, content)
 
 
-class SimpleMockClient(Client):
+class BaseMockClient(object):
+    def __init__(self, *args, **kwargs):
+        self.responses = kwargs.pop('responses', [])
+        self.root_uri = kwargs.pop('root_uri', '')
+
+        self._response_index = 0
+    
+    def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
+        if self._response_index >= len(self.responses):
+            raise RuntimeError('Ran out of responses when requesting: %s' % uri)
+
+        if not uri.startswith(self.root_uri):
+            urlparse.urljoin(self.root_uri, uri)
+
+        request = self.create_request(uri, method, body, headers)
+
+        # Get current queued mock response.
+        response = self.responses[self._response_index]
+
+        # Set minimal response headers.
+        response_headers = {
+            'Server': 'Mock Client',
+            'Status': 0,
+        }
+        response_headers.update(response.headers)
+        
+        return self.create_response(response_headers, response.content, request)
+
+
+class MockClient(BaseMockClient, ClientMixin):
     """
     A mock client, emulating the rest client. The client returns predefined 
     responses.
@@ -55,51 +87,61 @@ class SimpleMockClient(Client):
     **Example**
 
     >>> desired_response = StringResponse({'Status': 200}, '{}')
-    >>> client = SimpleMockClient('http://mockserver/', responses=[desired_response,])
+    >>> client = MockClient('http://mockserver/', responses=[desired_response,])
     >>> response = client.get('/')
     >>> response.content
     {}
     >>> response.status_code
     200
     """
-    responses = []
-    
+    pass
+
+
+class BaseMockApiClient(ClientMixin):
     def __init__(self, *args, **kwargs):
-        self.responses = kwargs.pop('responses', [])
-        self._counter = 0
-        
-        super(SimpleMockClient, self).__init__(*args, **kwargs)
-        
+        self.responses = kwargs.pop('responses', {})
+        self.root_uri = kwargs.pop('root_uri', '')
+    
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
-        if self._counter >= len(self.responses):
-            raise RuntimeError('Ran out of responses when requesting: %s' % uri )
+        if not uri.startswith(self.root_uri):
+            uri = urlparse.urljoin(self.root_uri, uri)
         
-        if not uri.startswith('http'):
-            uri = '%s%s' % (self.api_url, uri)
+        request = self.create_request(uri, method, body, headers)
 
-        request_headers = {
-            'Content-Type': 'application/json',
-            'X-API-version': '1',
-            'Authorization': self._authorization
-        }
-        if headers:
-            request_headers.update(headers)
+        # Get mock response for URI (look for full URI and path URI).
+        response_methods = self.responses.get(uri) or self.responses.get(uri[len(self.root_uri):])
+        if response_methods is None:
+            custom_response_headers, response_content = {'Status': 404}, 'Page not found'
+        elif method not in response_methods:
+            custom_response_headers, response_content = {'Status': 405}, 'Method not allowed'
+        else:
+            custom_response_headers, response_content = response_methods[method]
 
-        request = {
-            'PATH_INFO': uri,
-            'REQUEST_METHOD': method,
-            'QUERY_STRING': '',
-        }
-        request.update(dict([(k.upper().replace('-', '_'), v) for k, v in request_headers.items()]))
-        
         response_headers = {
-            'Server': 'Mock Client',
+            'Server': 'Mock API',
             'Status': 0,
-            'Content-Type': request_headers['Content-Type']
         }
-        response_headers.update(self.responses[self._counter].headers)
-        response_content = self.responses[self._counter].content
+        response_headers.update(custom_response_headers)
+
+        return self.create_response(response_headers, response_content, request)
         
-        self._counter += 1
-        
-        return Response(self, (response_headers, response_content), request)    
+    
+class MockApiClient(BaseMockApiClient, ClientMixin):
+    """
+    A client that emulates communicating with an entire mock API.
+    
+    Specify each resource and some headers and/or content to return.
+    
+    **Example**
+    
+    >>> client = MockApiClient(responses={
+    ...     '/api/book/': {
+    ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': ''http://www.example.com/api/book/1'}]),
+    ...         'POST': ({'Status': 201, 'Location': ''http://www.example.com/api/book/2'}, ''),
+    ...     },
+    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': ''http://www.example.com/api/author/1'})},
+    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': ''http://www.example.com/api/author/1'}])},
+    ...     '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
+    ... }, root_uri='http://www.example.com')
+    """
+    pass
