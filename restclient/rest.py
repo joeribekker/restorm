@@ -1,3 +1,4 @@
+import logging
 import urllib
 
 from restclient.exceptions import RestServerException, ResourceException
@@ -84,7 +85,7 @@ class RestManager(object):
         response = client.get(absolute_url)
 
         if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request['PATH_INFO'], response.status_code, response.content))
+            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
         
         return rd.clean(response)
     
@@ -97,9 +98,9 @@ class RestManager(object):
         response = client.get(absolute_url)
         
         if response.status_code not in self.VALID_STATUS_RESPONSES:
-            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request['PATH_INFO'], response.status_code, response.content))
+            raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
     
-        return self.object_class(response.content, client=client, absolute_url=response.request['PATH_INFO'])
+        return self.object_class(response.content, client=client, absolute_url=response.request.uri)
 
 
 class RelatedResource(object):
@@ -109,7 +110,7 @@ class RelatedResource(object):
     def _create_new_class(self, name):
         # FIXME: This will be a RestResource!
         class_name = name.title().replace('_', '')
-        return type(str('%sRestObject' % class_name), (RestObject,), {'__module__': '%s.auto' % RestObject.__module__})
+        return type(str('%sResource' % class_name), (Resource,), {'__module__': '%s.auto' % Resource.__module__})
         
     def __get__(self, instance, instance_type=None):
         if instance is None:
@@ -232,9 +233,6 @@ class RestObject(object):
         else:
             self._obj = {}
 
-        self.client = kwargs.pop('client', None)
-        self.absolute_url = kwargs.pop('absolute_url', None)
-
         for k, v in self._obj.items():
             # FIXME: Checking for http only is a bit crude.
             if isinstance(v, basestring) and v.startswith('http'):
@@ -253,6 +251,25 @@ class RestObject(object):
 
     def __getitem__(self, key):
         return self._obj[key]
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self._obj.__repr__())
+
+
+class Resource(RestObject):
+    """
+    Class that holds information about a resource.
+    
+    It has a manager to retrieve and/or manipulate the state of a resource. 
+    """
+    def __init__(self, data=None, **kwargs):
+        self.client = kwargs.pop('client', None)
+        self.absolute_url = kwargs.pop('absolute_url', None)
+        
+        if isinstance(data, RestObject):
+            data = data._obj
+        
+        super(Resource, self).__init__(data, **kwargs)
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
