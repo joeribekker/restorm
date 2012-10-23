@@ -1,5 +1,5 @@
 from restclient.rest import RestObject
-from restclient.clients.base import Client, Response, ClientMixin, BaseClient
+from restclient.clients.base import ClientMixin, BaseClient
 
 
 try:
@@ -16,13 +16,14 @@ class JSONClientMixin(ClientMixin):
             headers = {}
 
         headers.update({
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
         })
         
         return super(JSONClientMixin, self).create_request(uri, method, body, headers)
 
     def create_response(self, response_headers, response_content, request):
-        if 'content-type' in response_headers and response_headers['content-type'].startswith('application/json'):
+        if 'Content-Type' in response_headers and response_headers['Content-Type'].startswith('application/json'):
             response_content = json.loads(response_content, object_hook=RestObject)
         
         return super(JSONClientMixin, self).create_response(response_headers, response_content, request)

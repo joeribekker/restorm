@@ -10,6 +10,8 @@ except ImportError:
 
 class Request(dict):
     def __init__(self, uri, method, body=None, headers=None):
+        super(Request, self).__init__()
+
         self._uri = uri
         self._method = method
         self._body = body
@@ -17,7 +19,16 @@ class Request(dict):
         if headers is None:
             headers = {}
 
-        super(Request, self).__init__(headers)
+        self._headers = headers
+
+        self.update(dict([(k.title().replace('_', '-'), v) for k, v in headers.items()]))
+    
+    @property
+    def headers(self):
+        """
+        Return the actual headers.
+        """
+        return self._headers 
     
     @property
     def uri(self):
@@ -36,16 +47,13 @@ class Response(dict):
     def __init__(self, client, response_headers, response_content, request):
         super(Response, self).__init__()
 
+        self.client = client
         self.headers = response_headers
         self.content = response_content
-        self.client = client
-        
-        # Create request object.
-        request.update(dict([(k.upper().replace('-', '_'), v) for k, v in request.items()]))
         self.request = request
 
         # Make headers consistently accessible. 
-        self.update(dict([(k.title(), v) for k, v in response_headers.items()]))
+        self.update(dict([(k.title().replace('_', '-'), v) for k, v in response_headers.items()]))
         
         # Set status code on its own property.
         self.status_code = int(self.pop('Status'))

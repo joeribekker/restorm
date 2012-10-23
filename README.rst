@@ -30,25 +30,25 @@ Getting started
 Create a mock webservice
 ------------------------
 
-In order to test your client, you can emulate a whole webservice. Sometimes
-it's faster to use single predefined response, using the ``MockClient`` and 
-``MockResponse`` (sub)classes.
+In order to test your client, you can emulate a whole webservice using the
+``MockApiClient``. However, sometimes it's faster or easier to use a single, 
+predefined response, using the ``MockClient`` and ``MockResponse`` 
+(sub)classes.
 
-You can also use ``MockResponse`` (sub)classes to return the contents of a 
-file as response in combination with the ``MockApiClient``. This class is used
-below to mock an entire webservice.
+You can also use ``FileResponse`` class to return the contents of a file as 
+response in combination with the ``MockApiClient``.
 
-The mock webservice contains a list of books and a list authors. To keep it 
-short, both lists contain only 1 items::
+The mock webservice below contains a list of books and a list of authors. To 
+keep it simple, both lists contain only 1 items::
 
     client = MockApiClient(
         responses={
             '/api/book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': ''http://www.example.com/api/book/1'}]),
-                'POST': ({'Status': 201, 'Location': ''http://www.example.com/api/book/2'}, ''),
+                'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
+                'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
             },
-            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': ''http://www.example.com/api/author/1'})},
-            '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': ''http://www.example.com/api/author/1'}])},
+            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
+            '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
             '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
         },
         root_uri='http://www.example.com'
@@ -76,6 +76,23 @@ Make it work
     >>> author = book.author # Perform a GET on the "author" resource.
     >>> author['name']
     u'Mark Pilgrim'
+
+
+.. note:: As you may have noticed, the response content contains actual Python 
+    objects. The ``MockApiClient`` simply returns the content as is. If you 
+    prefer using JSON, you can achieve the same behaviour with::
+       
+        class JSONMockApiClient(BaseMockApiClient, JSONClientMixin):
+            pass
+            
+        client = JSONMockApiClient(
+            responses={
+                # Note the difference. The content is now JSON in a string.
+                '/api/book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
+                # ...
+            },
+            root_uri='http://www.example.com'
+        )
 
 
 Install

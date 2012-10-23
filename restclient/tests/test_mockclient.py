@@ -2,7 +2,8 @@ import os
 
 from unittest2 import TestCase
 
-from restclient.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient
+from restclient.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
+from restclient.clients.jsonclient import JSONClientMixin, json
 from restclient.rest import Resource
 
 
@@ -64,7 +65,7 @@ class MockClientTests(TestCase):
 
 class MockApiClientTests(TestCase):
     def setUp(self):
-        self.responses={
+        self.responses = {
             '/api/book/': {
                 'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
                 'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
@@ -119,3 +120,33 @@ class MockApiClientTests(TestCase):
         
         author = book.author
         self.assertEqual(author['name'], self.responses['/api/author/1']['GET'][1]['name'])
+        
+
+class JSONMockApiClientTests(TestCase):
+    """
+    Tests whether you can easily use JSONClientMixin and BaseMockApiClient to
+    create a new mock client using JSON responses.
+    
+    This is used as an example in the README.rst
+    """
+    
+    def setUp(self):
+        self.responses = {
+            '/api/book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, 
+                '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}')}
+        }
+
+        class JSONMockApiClient(BaseMockApiClient, JSONClientMixin):
+            pass
+
+        self.client = JSONMockApiClient(responses=self.responses, root_uri='http://www.example.com')
+
+    def test_get_json(self):
+        response = self.client.get('/api/book/1')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('Content-Type' in response)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        self.assertEqual(response.content['name'], 'Dive into Python')
+        self.assertEqual(response.content['author'], 'http://www.example.com/api/author/1')
