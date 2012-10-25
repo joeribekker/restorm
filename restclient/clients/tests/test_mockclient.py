@@ -3,7 +3,7 @@ import os
 from unittest2 import TestCase
 
 from restclient.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
-from restclient.clients.jsonclient import JSONClientMixin, json
+from restclient.clients.jsonclient import JSONClientMixin
 from restclient.rest import Resource
 
 
