@@ -23,10 +23,12 @@ class JSONClientMixin(ClientMixin):
         return super(JSONClientMixin, self).create_request(uri, method, body, headers)
 
     def create_response(self, response_headers, response_content, request):
-        if 'Content-Type' in response_headers and response_headers['Content-Type'].startswith('application/json'):
-            response_content = json.loads(response_content, object_hook=RestObject)
-        
-        return super(JSONClientMixin, self).create_response(response_headers, response_content, request)
+        response = super(JSONClientMixin, self).create_response(response_headers, response_content, request)
+
+        if 'Content-Type' in response and response['Content-Type'].startswith('application/json'):
+            response.content = json.loads(response.content, object_hook=RestObject)
+            
+        return response
 
     def get(self, uri):
         return super(JSONClientMixin, self).get(uri)
