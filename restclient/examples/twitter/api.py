@@ -8,7 +8,7 @@ import urlparse
 import oauth2 as oauth
 
 from restclient.clients.jsonclient import JSONClientMixin
-from restclient.rest import Resource
+from restclient.resource import Resource
 
 
 class TwitterClient(oauth.Client, JSONClientMixin):

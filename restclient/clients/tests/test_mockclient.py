@@ -4,7 +4,7 @@ from unittest2 import TestCase
 
 from restclient.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
 from restclient.clients.jsonclient import JSONClientMixin
-from restclient.rest import Resource
+from restclient.resource import Resource
 
 
 class MockClientTests(TestCase):

@@ -1,4 +1,4 @@
-from restclient.rest import RestObject
+from restclient.resource import RestObject
 from restclient.clients.base import ClientMixin, BaseClient
 
 
