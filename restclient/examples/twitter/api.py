@@ -8,7 +8,7 @@ import urlparse
 import oauth2 as oauth
 
 from restclient.clients.jsonclient import JSONClientMixin
-from restclient.rest import RestObject
+from restclient.rest import Resource
 
 
 class TwitterClient(oauth.Client, JSONClientMixin):
@@ -20,7 +20,7 @@ class TwitterClient(oauth.Client, JSONClientMixin):
         if body is None:
             body = ''
 
-        # Use JSON format in this client.
+        # Use JSON format in this client: Set the extension to JSON.
         parsed_url = urlparse.urlparse(uri)
         if not parsed_url.path.endswith('.json'):
             uri = urlparse.urlunparse((parsed_url.scheme, parsed_url.netloc, '%s.json' % parsed_url.path, parsed_url.params, parsed_url.query, parsed_url.fragment))
@@ -35,12 +35,12 @@ class TwitterClient(oauth.Client, JSONClientMixin):
         return self.create_response(response_headers, response_content, request)
 
 
-class TwitterSearch(RestObject):
+class TwitterSearch(Resource):
     class Meta:
         list = r'^search/tweets$'
 
 
-class TwitterTweet(RestObject):
+class TwitterTweet(Resource):
     class Meta:
         item = r'^statuses/show?id=(?P<id>\d)$'
         list = r'^statuses/user_timeline$'

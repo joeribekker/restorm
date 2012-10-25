@@ -181,15 +181,15 @@ class ResourceOptions(object):
                     setattr(self, attr_name, getattr(meta, attr_name))
         
         
-class RestObjectBase(type):
+class ResourceBase(type):
     """
-    Meta class for RestObject. This class ensures that RestObject classes (not
+    Meta class for Resource. This class ensures that Resource classes (not
     instances) are magically prepared.
     """
     
     def __new__(cls, name, bases, attrs):
-        super_new = super(RestObjectBase, cls).__new__
-        parents = [b for b in bases if isinstance(b, RestObjectBase)]
+        super_new = super(ResourceBase, cls).__new__
+        parents = [b for b in bases if isinstance(b, ResourceBase)]
         if not parents:
             # If this isn't a subclass of RestObject, don't do anything 
             # special.
@@ -223,10 +223,6 @@ class RestObjectBase(type):
 
 
 class RestObject(object):
-    __metaclass__ = RestObjectBase
-
-    objects = None
-
     def __init__(self, data=None, **kwargs):
         if data is not None:
             self._obj = data
@@ -262,6 +258,10 @@ class Resource(RestObject):
     
     It has a manager to retrieve and/or manipulate the state of a resource. 
     """
+    __metaclass__ = ResourceBase
+
+    objects = None
+
     def __init__(self, data=None, **kwargs):
         self.client = kwargs.pop('client', None)
         self.absolute_url = kwargs.pop('absolute_url', None)
