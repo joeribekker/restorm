@@ -1,10 +1,10 @@
 from unittest2 import TestCase
 
 from restclient.clients.mockclient import MockClient, MockResponse
-from restclient.resource import RestObject, RestManager, ResourceOptions, Resource
+from restclient.resource import RestObject, ResourceManager, ResourceOptions, Resource
 
 
-class RestObjectTests(TestCase):
+class ResourceTests(TestCase):
     
     def setUp(self):
         self.client = MockClient()
@@ -57,10 +57,10 @@ class RestObjectTests(TestCase):
         class Author(Resource):
             pass
                 
-        self.assertTrue(isinstance(Book.objects, RestManager))
+        self.assertTrue(isinstance(Book.objects, ResourceManager))
         self.assertTrue(Book.objects.object_class, Book)
 
-        self.assertTrue(isinstance(Author.objects, RestManager))
+        self.assertTrue(isinstance(Author.objects, ResourceManager))
         self.assertTrue(Author.objects.object_class, Author)
 
         self.assertNotEqual(Book.objects, Author.objects)
@@ -77,7 +77,7 @@ class RestObjectTests(TestCase):
         Custom managers can be added on a RestObject.
         """
         
-        class BookManager(RestManager):
+        class BookManager(ResourceManager):
             def filter_on_author(self, author_resource):
                 return self.params([('author', author_resource),])
         
@@ -95,7 +95,7 @@ class RestObjectTests(TestCase):
         self.assertTrue(hasattr(Book.objects, 'filter_on_author'))
         self.assertTrue(Book.objects.object_class, Book)
 
-        self.assertTrue(isinstance(Author.objects, RestManager))
+        self.assertTrue(isinstance(Author.objects, ResourceManager))
         self.assertTrue(Author.objects.object_class, Author)
 
         self.assertNotEqual(Book.objects, Author.objects)

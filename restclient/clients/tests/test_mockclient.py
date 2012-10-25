@@ -1,4 +1,5 @@
 import os
+from rest import RestObject
 
 from unittest2 import TestCase
 
@@ -70,7 +71,7 @@ class MockApiClientTests(TestCase):
                 'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
                 'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
             },
-            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
+            '/api/book/1': {'GET': ({'Status': 200}, RestObject({'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'}))},
             '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
             '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
         }

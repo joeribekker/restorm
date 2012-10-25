@@ -1,10 +1,12 @@
 import logging
 import urllib
 
-from restclient.exceptions import RestServerException, ResourceException
+from restclient.rest import RestObject
+from restclient.exceptions import RestServerException
+from restclient.utils import reverse
 
 
-class RestManagerDescriptor(object):
+class ResourceManagerDescriptor(object):
     """
     This class ensures managers aren't accessible via model instances. For
     example, Book.objects works, but book_obj.objects raises AttributeError.
@@ -16,24 +18,6 @@ class RestManagerDescriptor(object):
         if instance is not None:
             raise AttributeError('Manager is not accessible via %s instances' % type.__name__)
         return self.manager
-
-
-import re
-def reverse(pattern, **kwargs):
-    template = pattern.strip('^$')
-
-    start = re.compile(r'\(\?P\<')
-    end = re.compile(r'\>[^\)]*\)')
-    
-    template = start.sub('%(', template)
-    template = end.sub(')s', template)
-    
-    try:
-        result = template % kwargs
-    except KeyError, e:
-        raise ValueError('The URL pattern requires %s as named argument.' % e)
-    
-    return result
 
 
 class ResourcePattern(object):
@@ -66,7 +50,7 @@ class ResourcePattern(object):
         return '%s%s' % (root, self.get_url(query, **kwargs))
 
     
-class RestManager(object):
+class ResourceManager(object):
     
     VALID_STATUS_RESPONSES = (
         200, # OK
@@ -212,47 +196,17 @@ class ResourceBase(type):
         # Assign manager.
         manager = attrs.pop('objects', None)
         if manager is None:
-            manager = RestManager()
+            manager = ResourceManager()
         manager.object_class = new_class
 
         # Wrap default or custom managers such that it can only be used on
         # classes and not on instances.
-        new_class.objects = RestManagerDescriptor(manager)
+        new_class.objects = ResourceManagerDescriptor(manager)
         
         return new_class
 
 
-class RestObject(object):
-    def __init__(self, data=None, **kwargs):
-        if data is not None:
-            self._obj = data
-        else:
-            self._obj = {}
-
-        for k, v in self._obj.items():
-            # FIXME: Checking for http only is a bit crude.
-            if isinstance(v, basestring) and v.startswith('http'):
-                if not hasattr(self.__class__, k):
-                    setattr(self.__class__, k, RelatedResource(k))
-
-    def get(self, key):
-        # TODO: Implement to access inaccessible 
-        pass
-                
-    def __setitem__(self, key, value):
-        self._obj[key] = value
-
-    def __delitem__(self, key):
-        del self._obj[key]
-
-    def __getitem__(self, key):
-        return self._obj[key]
-
-    def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self._obj.__repr__())
-
-
-class Resource(RestObject):
+class Resource(object):
     """
     Class that holds information about a resource.
     
@@ -266,10 +220,24 @@ class Resource(RestObject):
         self.client = kwargs.pop('client', None)
         self.absolute_url = kwargs.pop('absolute_url', None)
         
-        if isinstance(data, RestObject):
-            data = data._obj
-        
-        super(Resource, self).__init__(data, **kwargs)
+        self._data = data
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
+
+    # TODO: Allow this resource to act as a list, dict, or whatever.
+    # Interface: collections.MutableMapping
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def __delitem__(self, key):
+        del self._data[key]
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        return self._data.__iter__()
