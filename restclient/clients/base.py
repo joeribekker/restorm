@@ -1,4 +1,4 @@
-import urlparse
+import logging
 import httplib2
 
 try:
@@ -6,6 +6,9 @@ try:
 except ImportError:
     # Python 2.5 compatability.
     import simplejson as json
+
+
+logger = logging.getLogger(__name__)
 
 
 class Request(dict):
@@ -88,10 +91,39 @@ class BaseClient(httplib2.Http):
         request = self.create_request(uri, method, body, headers)
 
         # Perform an HTTP-request with ``httplib2``.
-        response_headers, response_content = super(BaseClient, self).request(request.uri, request.method, request.body, request, redirections, connection_type)
-        
-        # Create response.
-        return self.create_response(response_headers, response_content, request)
+        try:
+            response_headers, response_content = super(BaseClient, self).request(request.uri, request.method, request.body, request, redirections, connection_type)
+        except Exception, e:
+            # Logging.
+            logger.critical('%(method)s %(uri)s\n%(headers)s\n\n%(content)s\n\n\n%(exception)s', {
+                'method': request.method,
+                'uri': request.uri,
+                'headers': '\n'.join(['%s: %s' % (k, v) for k, v in request.items()]),
+                'content': request.content,
+                'exception': unicode(e),
+            })
+            raise
+        else:
+            # Create response.
+            response = self.create_response(response_headers, response_content, request)
+            
+            # Logging.
+            if logger.level > logging.DEBUG:
+                logger.info('%(method)s %(uri)s (HTTP %(response_status)s)' % {
+                    'method': request.method,
+                    'uri': request.uri,
+                    'response_status': response.status_code
+                })
+            else:
+                logger.debug('%(method)s %(uri)s\n%(headers)s\n\n%(content)s\n\n\nHTTP %(response_status)s\n%(response_headers)s\n\n%(response_content)s', {
+                    'method': request.method,
+                    'uri': request.uri,
+                    'headers': '\n'.join(['%s: %s' % (k, v) for k, v in request.items()]),
+                    'content': request.content,
+                    'response_status': response.status_code,
+                    'response_headers': '\n'.join(['%s: %s' % (k, v) for k, v in response.items()]),
+                    'response_content': response.content
+                })
 
 
 class Client(BaseClient, ClientMixin):
