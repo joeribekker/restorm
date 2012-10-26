@@ -1,7 +1,7 @@
 import logging
 import urllib
 
-from restclient.rest import RestObject
+from restclient.rest import restify
 from restclient.exceptions import RestServerException
 from restclient.utils import reverse
 
@@ -88,8 +88,10 @@ class ResourceManager(object):
 
 
 class RelatedResource(object):
-    def __init__(self, field):
+    def __init__(self, field, resource):
         self._field = field
+        self._resource = resource
+        self._client = resource.client
     
     def _create_new_class(self, name):
         # FIXME: This will be a RestResource!
@@ -102,14 +104,14 @@ class RelatedResource(object):
 
         if not hasattr(instance, '_cache_%s' % self._field):
             absolute_url = instance[self._field]
-            response = instance.client.get(absolute_url)
+            response = self._client.get(absolute_url)
             if response.status_code == 404:
                 return None
             elif response.status_code not in [200, 304]:
                 raise RestServerException('Cannot get "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
 
             resource_class = self._create_new_class(self._field)
-            setattr(instance, '_cache_%s' % self._field, resource_class(response.content, client=instance.client, absolute_url=absolute_url))
+            setattr(instance, '_cache_%s' % self._field, resource_class(response.content, client=self._client, absolute_url=absolute_url))
 
         return getattr(instance, '_cache_%s' % self._field, None)
 
@@ -119,12 +121,12 @@ class RelatedResource(object):
 
         if isinstance(value, dict):
             absolute_url = instance[self._field]
-            response = instance.client.put(absolute_url, value)
+            response = self._client.put(absolute_url, value)
             if response.status_code not in [200, 201, 304]:
                 raise RestServerException('Cannot put "%s" (%d): %s' % (absolute_url, response.status_code, response.content))
 
             resource_class = self._create_new_class(self._field)
-            setattr(instance, '_cache_%s' % self._field, resource_class(value, client=instance.client, absolute_url=absolute_url))
+            setattr(instance, '_cache_%s' % self._field, resource_class(value, client=self._client, absolute_url=absolute_url))
         else:
             setattr(instance, '_cache_%s' % self._field, value)
 
@@ -206,6 +208,18 @@ class ResourceBase(type):
         return new_class
 
 
+class ResourceList(list):
+    """
+    A list of ``Resource`` instances which are most likely incomplete compared
+    to when they are retrieved as an individual.
+    """
+    def __init__(self, data, **kwargs):
+        self.client = kwargs.pop('client', None)
+        self.absolute_url = kwargs.pop('absolute_url', None)
+        
+        super(ResourceList, self).__init__([Resource(item, self.client) for item in data])
+
+
 class Resource(object):
     """
     Class that holds information about a resource.
@@ -220,12 +234,15 @@ class Resource(object):
         self.client = kwargs.pop('client', None)
         self.absolute_url = kwargs.pop('absolute_url', None)
         
-        self._data = data
+        self._data = restify(data, self)
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
 
     # TODO: Allow this resource to act as a list, dict, or whatever.
+    def __getattr__(self, item):
+        return getattr(self._data, item)
+        
     # Interface: collections.MutableMapping
     def __getitem__(self, key):
         return self._data[key]

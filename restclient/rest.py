@@ -1,19 +1,28 @@
+try:
+    import json
+except ImportError:
+    # Python 2.5 compatability.
+    import simplejson as json
+
+
 class RestObject(object):
     def __new__(cls, data=None, *args, **kwargs):
         from resource import RelatedResource
 
+        resource = kwargs.get('resource')
         related_resources = {}
         if data is not None:
             for k, v in data.items():
                 # FIXME: Checking for http only is a bit crude.
                 if isinstance(v, basestring) and v.startswith('http'):
                     if not hasattr(cls, k):
-                        related_resources[k] = RelatedResource(k)
+                        related_resources[k] = RelatedResource(k, resource)
 
         new_class = type('Dynamic%s' % cls.__name__, (cls,), related_resources)
         return super(RestObject, cls).__new__(new_class)
     
     def __init__(self, data=None, **kwargs):
+        
         if data is not None:
             self._obj = data
         else:
@@ -37,3 +46,11 @@ class RestObject(object):
 
     def __iter__(self):
         return self._obj.__iter__()
+
+
+def restify(data, resource):
+    def rest_object(dct):
+        return RestObject(dct, resource=resource)
+    
+    json_data = json.dumps(data)
+    return json.loads(json_data, object_hook=rest_object)

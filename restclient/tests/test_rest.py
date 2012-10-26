@@ -1,6 +1,6 @@
 from unittest2 import TestCase
 
-from restclient.resource import RestObject
+from restclient.rest import RestObject
 
 
 class RestObjectTests(TestCase):

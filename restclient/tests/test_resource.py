@@ -1,7 +1,8 @@
 from unittest2 import TestCase
 
+from restclient.rest import RestObject
 from restclient.clients.mockclient import MockClient, MockResponse
-from restclient.resource import RestObject, ResourceManager, ResourceOptions, Resource
+from restclient.resource import ResourceManager, ResourceOptions, Resource
 
 
 class ResourceTests(TestCase):
