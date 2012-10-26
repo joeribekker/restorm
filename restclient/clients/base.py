@@ -95,11 +95,11 @@ class BaseClient(httplib2.Http):
             response_headers, response_content = super(BaseClient, self).request(request.uri, request.method, request.body, request, redirections, connection_type)
         except Exception, e:
             # Logging.
-            logger.critical('%(method)s %(uri)s\n%(headers)s\n\n%(content)s\n\n\n%(exception)s', {
+            logger.critical('%(method)s %(uri)s\n%(headers)s\n\n%(body)s\n\n\nException: %(exception)s', {
                 'method': request.method,
                 'uri': request.uri,
                 'headers': '\n'.join(['%s: %s' % (k, v) for k, v in request.items()]),
-                'content': request.content,
+                'body': request.body if request.body else '',
                 'exception': unicode(e),
             })
             raise
@@ -115,15 +115,18 @@ class BaseClient(httplib2.Http):
                     'response_status': response.status_code
                 })
             else:
-                logger.debug('%(method)s %(uri)s\n%(headers)s\n\n%(content)s\n\n\nHTTP %(response_status)s\n%(response_headers)s\n\n%(response_content)s', {
+                logger.debug('%(method)s %(uri)s\n%(headers)s\n\n%(body)s\n\n\nHTTP %(response_status)s\n%(response_headers)s\n\n%(response_content)s', {
                     'method': request.method,
                     'uri': request.uri,
                     'headers': '\n'.join(['%s: %s' % (k, v) for k, v in request.items()]),
-                    'content': request.content,
+                    'body': request.body if request.body else '',
                     'response_status': response.status_code,
                     'response_headers': '\n'.join(['%s: %s' % (k, v) for k, v in response.items()]),
-                    'response_content': response.content
+                    # Show the actual content, not response.content
+                    'response_content': response_content
                 })
+                
+            return response
 
 
 class Client(BaseClient, ClientMixin):
