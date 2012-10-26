@@ -71,7 +71,7 @@ class MockApiClientTests(TestCase):
                 'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
                 'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
             },
-            '/api/book/1': {'GET': ({'Status': 200}, RestObject({'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'}))},
+            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
             '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
             '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
         }
@@ -103,7 +103,7 @@ class MockApiClientTests(TestCase):
 
         self.assertEqual(response.status_code, 405)
         
-    def test_rest_client_interaction(self):
+    def test_related(self):
         
         class Book(Resource):
             class Meta:

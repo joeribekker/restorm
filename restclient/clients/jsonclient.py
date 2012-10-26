@@ -1,4 +1,3 @@
-from restclient.resource import RestObject
 from restclient.clients.base import ClientMixin, BaseClient
 
 
@@ -26,7 +25,7 @@ class JSONClientMixin(ClientMixin):
         response = super(JSONClientMixin, self).create_response(response_headers, response_content, request)
 
         if 'Content-Type' in response and response['Content-Type'].startswith('application/json'):
-            response.content = json.loads(response.content, object_hook=RestObject)
+            response.content = json.loads(response.content)
             
         return response
 
