@@ -111,13 +111,13 @@ class BaseMockApiClient(ClientMixin):
         request = self.create_request(uri, method, body, headers)
 
         # Get mock response for URI (look for full URI and path URI).
-        response_methods = self.responses.get(uri) or self.responses.get(uri[len(self.root_uri):])
+        response_methods = self.responses.get(request.uri) or self.responses.get(request.uri[len(self.root_uri):])
         if response_methods is None:
             custom_response_headers, response_content = {'Status': 404}, 'Page not found'
-        elif method not in response_methods:
+        elif request.method not in response_methods:
             custom_response_headers, response_content = {'Status': 405}, 'Method not allowed'
         else:
-            custom_response_headers, response_content = response_methods[method]
+            custom_response_headers, response_content = response_methods[request.method]
 
         response_headers = {
             'Server': 'Mock API',
@@ -141,11 +141,11 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     
     >>> client = MockApiClient(responses={
     ...     '/api/book/': {
-    ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': ''http://www.example.com/api/book/1'}]),
-    ...         'POST': ({'Status': 201, 'Location': ''http://www.example.com/api/book/2'}, ''),
+    ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
+    ...         'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
     ...     },
-    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': ''http://www.example.com/api/author/1'})},
-    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': ''http://www.example.com/api/author/1'}])},
+    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
+    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
     ...     '/api/author/1': {'GET': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
     ... }, root_uri='http://www.example.com')
     """
