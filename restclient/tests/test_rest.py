@@ -1,6 +1,6 @@
 from unittest2 import TestCase
 
-from restclient.rest import RestObject
+from restclient.rest import RestObject, restify
 
 
 class RestObjectTests(TestCase):
@@ -48,23 +48,29 @@ class RestObjectTests(TestCase):
         self.assertFalse('child' in child_object)
         self.assertTrue('child' in parent_object)
 
-    def test_related(self):
-        rest_object = RestObject({'foo': 'bar', 'resource': 'http://www.example.com/api/object'})
-        
-        self.assertEqual(rest_object['foo'], 'bar')
-        self.assertEqual(rest_object['resource'], 'http://www.example.com/api/object')
-        
-        self.assertFalse(hasattr(rest_object, 'foo'))
-        self.assertFalse(hasattr(rest_object, 'resource'))
 
-        self.assertFalse(hasattr(rest_object.__class__, 'foo'))
-        self.assertTrue(hasattr(rest_object.__class__, 'resource'))
+class RestifyTests(TestCase):
 
-    def test_nested_related(self):
-        child_object = RestObject({'foo': 'bar', 'child_resource': 'http://www.example.com/api/child_object'})
-        parent_object = RestObject({
-            'child': child_object,
-            'parent_resource': 'http://www.example.com/api/parent_object'
-        })
+    def setUp(self):
+        class DummyResource(object):
+            client = None
         
-        # TODO
+        self.mock_resource = DummyResource()
+
+    def test_rest_object(self):
+        json_data = {
+            'name': 'Dive into Python',
+            'resource_url': 'http://localhost/api/book/1',
+            'author': {
+                'name': 'Mark Pelgrim',
+                'resource_url': 'http://localhost/api/author/1',
+            }
+        }
+        
+        rest_data = restify(json_data, self.mock_resource)
+        
+        self.assertTrue(isinstance(rest_data, RestObject))
+        #self.assertTrue(rest_data.resource_url)
+
+        # Nested
+        self.assertTrue(isinstance(rest_data['author'], RestObject))

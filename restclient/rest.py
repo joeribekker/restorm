@@ -49,6 +49,14 @@ class RestObject(object):
 
 
 def restify(data, resource):
+    """
+    Turns Python objects (dict, list, etc) into Rest objects.
+    
+    :param data: Any Python object.
+    :param resource: The resource this data belongs to.
+
+    :return: Rest objects. 
+    """
     def rest_object(dct):
         return RestObject(dct, resource=resource)
     

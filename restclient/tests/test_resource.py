@@ -80,7 +80,7 @@ class ResourceTests(TestCase):
         
         class BookManager(ResourceManager):
             def filter_on_author(self, author_resource):
-                return self.params([('author', author_resource),])
+                return self.all(query=[('author', author_resource),])
         
         class Book(Resource):
             objects = BookManager()
