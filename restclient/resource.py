@@ -70,7 +70,7 @@ class ResourceManager(object):
 
     def all(self, client, query=None, **kwargs):
         rd = ResourcePattern.parse(self.options.list)
-        absolute_url = rd.get_absolute_url(root=self.options, query=query, **kwargs)
+        absolute_url = rd.get_absolute_url(root=self.options.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
 
