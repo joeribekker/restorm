@@ -60,11 +60,17 @@ class ResourceManager(object):
     def __init__(self):
         self.object_class = None
 
-    def all(self, client=None, query=None, **kwargs):
-        opts = self.object_class._meta
-        # FIXME: This can be done once and retrieved every time...
-        rd = ResourcePattern.parse(opts.list)
-        absolute_url = rd.get_absolute_url(root=opts.root, query=query, **kwargs)
+    @property
+    def options(self):
+        try:
+            return getattr(self, '_options')
+        except AttributeError:
+            self._options = self.object_class._meta
+            return self._options
+
+    def all(self, client, query=None, **kwargs):
+        rd = ResourcePattern.parse(self.options.list)
+        absolute_url = rd.get_absolute_url(root=self.options, query=query, **kwargs)
 
         response = client.get(absolute_url)
 
@@ -73,11 +79,9 @@ class ResourceManager(object):
         
         return rd.clean(response)
     
-    def get(self, client=None, query=None, **kwargs):
-        opts = self.object_class._meta
-        # FIXME: This can be done once and retrieved every time...
-        rd = ResourcePattern.parse(opts.item)
-        absolute_url = rd.get_absolute_url(root=opts.root, query=query, **kwargs)
+    def get(self, client, query=None, **kwargs):
+        rd = ResourcePattern.parse(self.options.item)
+        absolute_url = rd.get_absolute_url(root=self.options.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
         
