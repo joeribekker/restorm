@@ -1,2 +1,2 @@
-include setup.py ez_setup README.rst MANIFEST.in LICENSE
+include setup.py distribute_setup.py README.rst MANIFEST.in LICENSE
 global-exclude *~
