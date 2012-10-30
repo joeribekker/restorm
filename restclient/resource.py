@@ -28,6 +28,9 @@ class ResourceManagerDescriptor(object):
 
 
 class ResourcePattern(object):
+    """
+    # TODO: This class needs cleaning up and refactoring.
+    """
 
     def __init__(self, pattern, obj_path=None):
         self.pattern = pattern
@@ -40,7 +43,7 @@ class ResourcePattern(object):
         return cls(obj)
     
     def params_from_uri(self, uri):
-        return re.search(self.pattern, uri).groupdict()
+        return re.search(self.pattern.strip('^$'), uri).groupdict()
     
     def clean(self, response):
         if self.obj_path:
