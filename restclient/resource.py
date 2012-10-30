@@ -1,9 +1,16 @@
 import logging
 import urllib
+import re
 
 from restclient.rest import restify
 from restclient.exceptions import RestServerException
 from restclient.utils import reverse
+
+
+VALID_GET_STATUS_RESPONSES = (
+    200, # OK
+    304, # NOT MODIFIED
+)
 
 
 class ResourceManagerDescriptor(object):
@@ -31,7 +38,10 @@ class ResourcePattern(object):
         if isinstance(obj, tuple):
             return cls(*obj)
         return cls(obj)
-
+    
+    def params_from_uri(self, uri):
+        return re.search(self.pattern, uri).groupdict()
+    
     def clean(self, response):
         if self.obj_path:
             return response.content[self.obj_path]
@@ -52,11 +62,6 @@ class ResourcePattern(object):
     
 class ResourceManager(object):
     
-    VALID_STATUS_RESPONSES = (
-        200, # OK
-        304, # NOT MODIFIED
-    )
-    
     def __init__(self):
         self.object_class = None
 
@@ -68,24 +73,28 @@ class ResourceManager(object):
             self._options = self.object_class._meta
             return self._options
 
-    def all(self, client, query=None, **kwargs):
-        rd = ResourcePattern.parse(self.options.list)
-        absolute_url = rd.get_absolute_url(root=self.options.root, query=query, **kwargs)
+    def all(self, client, query=None, uri=None, **kwargs):
+        rp = ResourcePattern.parse(self.options.list)
+        if uri:
+            kwargs = rp.params_from_uri(uri)
+        absolute_url = rp.get_absolute_url(root=self.options.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
 
-        if response.status_code not in self.VALID_STATUS_RESPONSES:
+        if response.status_code not in VALID_GET_STATUS_RESPONSES:
             raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
         
-        return rd.clean(response)
+        return rp.clean(response)
     
-    def get(self, client, query=None, **kwargs):
-        rd = ResourcePattern.parse(self.options.item)
-        absolute_url = rd.get_absolute_url(root=self.options.root, query=query, **kwargs)
+    def get(self, client, query=None, uri=None, **kwargs):
+        rp = ResourcePattern.parse(self.options.item)
+        if uri:
+            kwargs = rp.params_from_uri(uri)
+        absolute_url = rp.get_absolute_url(root=self.options.root, query=query, **kwargs)
 
         response = client.get(absolute_url)
         
-        if response.status_code not in self.VALID_STATUS_RESPONSES:
+        if response.status_code not in VALID_GET_STATUS_RESPONSES:
             raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
     
         return self.object_class(response.content, client=client, absolute_url=response.request.uri)
