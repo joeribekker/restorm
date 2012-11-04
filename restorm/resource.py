@@ -2,9 +2,9 @@ import logging
 import urllib
 import re
 
-from restclient.rest import restify
-from restclient.exceptions import RestServerException
-from restclient.utils import reverse
+from restorm.rest import restify
+from restorm.exceptions import RestServerException
+from restorm.utils import reverse
 
 
 VALID_GET_STATUS_RESPONSES = (

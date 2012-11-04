@@ -2,7 +2,7 @@ import oauth2 as oauth
 
 from unittest2 import TestCase, skipIf
 
-from restclient.examples.twitter import api
+from restorm.examples.twitter import api
 
 try:
     from settings_local import TWITTER_SETTINGS

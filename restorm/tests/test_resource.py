@@ -1,8 +1,8 @@
 from unittest2 import TestCase
 
-from restclient.rest import RestObject
-from restclient.clients.mockclient import MockClient, MockResponse
-from restclient.resource import ResourceManager, ResourceOptions, Resource
+from restorm.rest import RestObject
+from restorm.clients.mockclient import MockClient, MockResponse
+from restorm.resource import ResourceManager, ResourceOptions, Resource
 
 
 class ResourceTests(TestCase):

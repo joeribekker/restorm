@@ -1,7 +1,7 @@
 import urlparse
 import os
 
-from restclient.clients.base import ClientMixin
+from restorm.clients.base import ClientMixin
 
 
 class MockResponse(list):

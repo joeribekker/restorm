@@ -3,9 +3,9 @@ from rest import RestObject
 
 from unittest2 import TestCase
 
-from restclient.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
-from restclient.clients.jsonclient import JSONClientMixin
-from restclient.resource import Resource
+from restorm.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
+from restorm.clients.jsonclient import JSONClientMixin
+from restorm.resource import Resource
 
 
 class MockClientTests(TestCase):

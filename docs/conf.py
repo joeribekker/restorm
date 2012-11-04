@@ -213,7 +213,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'restclient', u'RestClient Documentation',
+    ('index', 'restorm', u'RestClient Documentation',
      [u'Joeri Bekker'], 1)
 ]
 

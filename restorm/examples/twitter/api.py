@@ -1,14 +1,14 @@
 """
 The Twitter API v1.1 improves a lot over v1.0 by adhering to ReST-principles.
-This makes the API a good example to use with RestClient.
+This makes the API a good example to use with RestORM.
 
 See: https://dev.twitter.com/docs/api/1.1
 """
 import urlparse
 import oauth2 as oauth
 
-from restclient.clients.jsonclient import JSONClientMixin
-from restclient.resource import Resource
+from restorm.clients.jsonclient import JSONClientMixin
+from restorm.resource import Resource
 
 
 class TwitterClient(oauth.Client, JSONClientMixin):

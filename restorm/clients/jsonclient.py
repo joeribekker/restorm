@@ -1,4 +1,4 @@
-from restclient.clients.base import ClientMixin, BaseClient
+from restorm.clients.base import ClientMixin, BaseClient
 
 
 try:

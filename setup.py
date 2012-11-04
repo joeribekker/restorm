@@ -4,7 +4,7 @@ use_setuptools()
 
 import os
 import sys
-import restclient
+import restorm
 from setuptools import setup, find_packages
 
 
@@ -32,8 +32,8 @@ if sys.version_info[:2] < (2, 5):
 
 
 setup(
-    name='restclient',
-    version='.'.join(map(str, restclient.__version__)),
+    name='restorm',
+    version='.'.join(map(str, restorm.__version__)),
 
     # Packaging.
     packages=find_packages(exclude=('tests', 'examples')),
@@ -54,7 +54,7 @@ setup(
     author_email='joeri@maykinmedia.nl',
     license='MIT',
     platforms=['any'],
-    url='http://github.com/joeribekker/restclient',
+    url='http://github.com/joeribekker/restorm',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

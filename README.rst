@@ -1,8 +1,8 @@
-==========
-RestClient
-==========
+=======
+RestORM
+=======
 
-Inspired by Django's ORM, **RestClient** allows you to interact with resources
+Inspired by Django's ORM, **RestORM** allows you to interact with resources
 as if they were objects.
 
 Description
