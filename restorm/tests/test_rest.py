@@ -74,3 +74,72 @@ class RestifyTests(TestCase):
 
         # Nested
         self.assertTrue(isinstance(rest_data['author'], RestObject))
+
+#    def test(self):
+#        # Before anything is instantiated, Book and RestObject should not have
+#        # attributes referring to related objects.
+#        self.assertFalse(hasattr(Book, 'author'))
+#        self.assertFalse(hasattr(Resource, 'author'))
+#
+#        book = Book.objects.get(client=self.client, id=1)
+#
+#        # The book has a registered class, Book.
+#        self.assertTrue(isinstance(book, Book))
+#        self.assertTrue(isinstance(book, Resource))
+#
+#        # The Book class should have an author attribute after instantation...
+#        self.assertTrue(hasattr(Book, 'author'))
+#        # ... the RestObject (base) class should not.
+#        self.assertFalse(hasattr(RestObject, 'author'))
+#
+#        # Test basic book resource properties.
+#        self.assertEqual(book.absolute_url, 'http://localhost/api/book/1')
+#        self.assertEqual(book['title'], book_data['title'])
+#        self.assertEqual(book['author'], book_data['author'])
+#
+#        # The author attribute should be present on the instance, bot not yet
+#        # cached.
+#        self.assertFalse(hasattr(book, '_cache_author'), 'Author should lazely be retrieved.')
+#        self.assertTrue(hasattr(book, 'author'))
+#
+#        author = book.author
+#
+#        # The author does not have a registered class, thus is a
+#        # Author-RestObject.
+#        self.assertTrue(isinstance(author, RestObject))
+#
+#        # After retrieving the author, the author should be cached on the
+#        # instance, not on the class.
+#        self.assertTrue(hasattr(book, '_cache_author'))
+#        self.assertFalse(hasattr(Book, '_cache_author'))
+#
+#        # The RestObject class should still not have an attribute called author
+#        # and neither should the author instance.
+#        self.assertFalse(hasattr(RestObject, 'author'))
+#        self.assertFalse(hasattr(author, 'author'))
+#
+#        # Test basic author resource properties.
+#        self.assertEqual(author.absolute_url, 'http://localhost/api/author/1')
+#        self.assertEqual(author['name'], author_data['name'])
+#
+#        city = author.born_in
+#
+#        # The city does not have a registered class, thus is a City-RestObject.
+#        self.assertTrue(isinstance(city, RestObject))
+#
+#        # Here we check if the auto created class CityRestObject does not have
+#        # attributes that belong to AuthorRestObject.
+#        self.assertFalse(hasattr(RestObject, 'born_in'))
+#        self.assertFalse(hasattr(city, 'born_in'))
+#
+#        self.assertFalse(hasattr(RestObject, 'author'))
+#        self.assertFalse(hasattr(city, 'author'))
+#        self.assertFalse(hasattr(book, 'born_in'))
+#
+#        self.assertTrue(hasattr(author, '_cache_born_in'))
+#        self.assertFalse(hasattr(city, '_cache_born_in'))
+#        self.assertFalse(hasattr(book, '_cache_born_in'))
+#
+#        # Test basic city resource properties.
+#        self.assertEqual(city.absolute_url, 'http://localhost/api/city/1')
+#        self.assertEqual(city['name'], city_data['name'])

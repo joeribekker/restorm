@@ -239,8 +239,8 @@ class ResourceList(list):
 class Resource(object):
     """
     Class that holds information about a resource.
-    
-    It has a manager to retrieve and/or manipulate the state of a resource. 
+
+    It has a manager to retrieve and/or manipulate the state of a resource.
     """
     __metaclass__ = ResourceBase
 
@@ -249,31 +249,11 @@ class Resource(object):
     def __init__(self, data=None, client=None, absolute_url=None):
         self.client = client
         self.absolute_url = absolute_url
-        
-        self._data = restify(data, self)
+
+        self.data = restify(data, self)
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
-
-    # TODO: Allow this resource to act as a list, dict, or whatever.
-    def __getattr__(self, item):
-        return getattr(self._data, item)
-        
-    # Interface: collections.MutableMapping
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def __delitem__(self, key):
-        del self._data[key]
-
-    def __len__(self):
-        return len(self._data)
-
-    def __iter__(self):
-        return self._data.__iter__()
 
 
 class SimpleResource(object):

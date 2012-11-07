@@ -6,6 +6,9 @@ except ImportError:
 
 
 class RestObject(object):
+    """
+    A ``dict``-like object without the convenience methods.
+    """
     def __new__(cls, data=None, *args, **kwargs):
         from resource import RelatedResource
 
