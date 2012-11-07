@@ -9,7 +9,7 @@ Description
 ===========
 
 Most RESTful webservices are very easy to access with very little code.
-**RestClient** is just a small layer on top of ``httplib2.Http`` to get a
+**RestORM** is just a small layer on top of ``httplib2.Http`` to get a
 response from a webservice. However, instead of regular Python ``dict``
 objects, you'll get a ``dict``-like object that knows how to access related
 resources as well.
@@ -71,10 +71,10 @@ Make it work
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
     >>> book['name'] # Get the value of the key "name".
     u'Dive Into Python'
-    >>> book['author'] # Get the value of the key "author".
+    >>> book.data['author'] # Get the value of the key "author".
     u'http://www.example.com/api/author/1'
-    >>> author = book.author # Perform a GET on the "author" resource.
-    >>> author['name']
+    >>> author = book.data.author # Perform a GET on the "author" resource.
+    >>> author.data['name']
     u'Mark Pilgrim'
 
 
@@ -87,11 +87,11 @@ Make it work
             
         client = JSONMockApiClient(
             responses={
-                # Note the difference. The content is now JSON in a string.
-                '/api/book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
+                # Note the difference. The content is now JSON.
+                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
                 # ...
             },
-            root_uri='http://www.example.com'
+            root_uri='http://www.example.com/api/'
         )
 
 
