@@ -1,3 +1,4 @@
+from clients.tests import LibraryApiClient
 import os
 from rest import RestObject
 
@@ -64,42 +65,34 @@ class MockClientTests(TestCase):
         self.assertEqual(response.request.uri, url)
 
 
+
 class MockApiClientTests(TestCase):
     def setUp(self):
-        self.responses = {
-            '/api/book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
-                'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
-            },
-            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
-            '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
-            '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
-        }
-        self.client = MockApiClient(responses=self.responses, root_uri='http://www.example.com')
+        self.client = LibraryApiClient()
         
     def test_get(self):
-        response = self.client.get('/api/book/')
+        response = self.client.get('book/')
         
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, self.responses['/api/book/']['GET'][1])
+        self.assertEqual(response.content, self.client.responses['book/']['GET'][1])
         
     def test_post(self):
-        response = self.client.post('/api/book/', {})
+        response = self.client.post('search/', {'q': 'Python'})
         
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['Location'], self.responses['/api/book/']['POST'][0]['Location'])
-        self.assertEqual(response.content, self.responses['/api/book/']['POST'][1])
-        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['X-Cache'], self.client.responses['search/']['POST'][0]['X-Cache'])
+        self.assertEqual(response.content, self.client.responses['search/']['POST'][1])
+
     def test_page_not_found(self):
-        uri = '/api/book/2'
-        self.assertTrue(uri not in self.responses)
+        uri = 'book/2'
+        self.assertTrue(uri not in self.client.responses)
 
         response = self.client.get(uri)
 
         self.assertEqual(response.status_code, 404)
 
     def test_method_not_allowed(self):
-        response = self.client.put('/api/book/1', {})
+        response = self.client.post('author/1', {})
 
         self.assertEqual(response.status_code, 405)
         
@@ -107,20 +100,20 @@ class MockApiClientTests(TestCase):
         
         class Book(Resource):
             class Meta:
-                list = r'^/api/book/$'
-                item = r'^/api/book/(?P<id>\d)$'
+                list = r'^book/$'
+                item = r'^book/(?P<isbn>\d)$'
                 
         class Author(Resource):
             class Meta:
-                list = r'^/api/author/$'
-                item = r'^/api/author/(?P<id>\d)$'
+                list = (r'^author/$', 'author_set')
+                item = r'^author/(?P<id>\d)$'
 
-        book = Book.objects.get(id=1, client=self.client)
-        self.assertEqual(book['name'], self.responses['/api/book/1']['GET'][1]['name'])
-        self.assertEqual(book['author'], self.responses['/api/book/1']['GET'][1]['author'])
+        book = Book.objects.get(isbn='978-1441413024', client=self.client)
+        self.assertEqual(book.data['title'], self.client.responses['book/978-1441413024']['GET'][1]['title'])
+        self.assertEqual(book.data['author'], self.client.responses['book/978-1441413024']['GET'][1]['author'])
         
-        author = book.author
-        self.assertEqual(author['name'], self.responses['/api/author/1']['GET'][1]['name'])
+        author = book.data.author
+        self.assertEqual(author.data['name'], self.client.responses['author/1']['GET'][1]['name'])
         
 
 class JSONMockApiClientTests(TestCase):
@@ -133,17 +126,17 @@ class JSONMockApiClientTests(TestCase):
     
     def setUp(self):
         self.responses = {
-            '/api/book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, 
+            'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, 
                 '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}')}
         }
 
         class JSONMockApiClient(BaseMockApiClient, JSONClientMixin):
             pass
 
-        self.client = JSONMockApiClient(responses=self.responses, root_uri='http://www.example.com')
+        self.client = JSONMockApiClient(responses=self.responses, root_uri='http://www.example.com/api/')
 
     def test_get_json(self):
-        response = self.client.get('/api/book/1')
+        response = self.client.get('book/1')
         
         self.assertEqual(response.status_code, 200)
         self.assertTrue('Content-Type' in response)
