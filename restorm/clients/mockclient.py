@@ -99,11 +99,11 @@ class MockClient(BaseMockClient, ClientMixin):
     pass
 
 
-class BaseMockApiClient(ClientMixin):
+class BaseMockApiClient(object):
     def __init__(self, *args, **kwargs):
         self.responses = kwargs.pop('responses', {})
         self.root_uri = kwargs.pop('root_uri', '')
-    
+
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
         if not uri.startswith(self.root_uri):
             uri = urlparse.urljoin(self.root_uri, uri)
