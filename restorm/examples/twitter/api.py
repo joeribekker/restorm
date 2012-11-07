@@ -1,4 +1,7 @@
 """
+NOTE: This is *not* a complete Twitter API implementation! Its purpose is to
+show you can make an implementation using RestORM.
+
 The Twitter API v1.1 improves a lot over v1.0 by adhering to ReST-principles.
 This makes the API a good example to use with RestORM.
 

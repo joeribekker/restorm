@@ -28,4 +28,4 @@ class TwitterTests(TestCase):
         tweet_list = api.TwitterTweet.objects.all(query={'screen_name': TWITTER_SETTINGS['SCREEN_NAME']}, client=self.client)
         self.assertTrue(len(tweet_list) > 0, 'You need to have some tweets.')
         tweet_item = api.TwitterTweet.objects.get(id=tweet_list[0]['id'], client=self.client)
-        self.assertEqual(tweet_list[0]['text'], tweet_item['text'])
+        self.assertEqual(tweet_list[0]['text'], tweet_item.data['text'])
