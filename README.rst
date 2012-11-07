@@ -68,8 +68,10 @@ Setup your client side resource definitions::
 Make it work
 ------------
 
+You can simply access the ``Book`` resource::
+
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
-    >>> book['name'] # Get the value of the key "name".
+    >>> book.data['name'] # Get the value of the key "name".
     u'Dive Into Python'
     >>> book.data['author'] # Get the value of the key "author".
     u'http://www.example.com/api/author/1'
