@@ -1,4 +1,4 @@
-from clients.mockclient import MockApiClient
+from restorm.clients.mockclient import MockApiClient
 
 
 class LibraryApiClient(MockApiClient):

@@ -1,7 +1,6 @@
-from clients.tests import LibraryApiClient
 from unittest2 import TestCase
 
-from restorm.rest import RestObject
+from restorm.clients.tests import LibraryApiClient
 from restorm.resource import ResourceManager, ResourceOptions, Resource
 
 

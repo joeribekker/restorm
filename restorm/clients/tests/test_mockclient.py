@@ -1,10 +1,9 @@
-from clients.tests import LibraryApiClient
 import os
-from rest import RestObject
 
 from unittest2 import TestCase
 
-from restorm.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, MockApiClient, BaseMockApiClient
+from restorm.clients.tests import LibraryApiClient
+from restorm.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, BaseMockApiClient
 from restorm.clients.jsonclient import JSONClientMixin
 from restorm.resource import Resource
 
