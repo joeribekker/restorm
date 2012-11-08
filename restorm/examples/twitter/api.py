@@ -19,7 +19,7 @@ class TwitterClient(oauth.Client, JSONClientMixin):
     
     def request(self, uri, method='GET', body=None, headers=None, *args, **kwargs):
         if not uri.startswith(self.root):
-            uri = '%s%s' % (self.root, uri)
+            uri = urlparse.urljoin(self.root, uri)
         if body is None:
             body = ''
 
