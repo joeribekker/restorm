@@ -133,7 +133,10 @@ Contribute
 Testing
 =======
 
-Performing the unit tests::
+RestORM has a whooping 90% test coverage. Although reaching 100% is not a goal
+by itself, I consider unit testing to be essential during development.
+
+Performing the unit tests yourself::
 
     python setup.py test
 

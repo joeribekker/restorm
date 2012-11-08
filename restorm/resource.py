@@ -86,8 +86,9 @@ class ResourceManager(object):
 
         if response.status_code not in VALID_GET_STATUS_RESPONSES:
             raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
-        
-        return rp.clean(response)
+
+        data = rp.clean(response)
+        return data
     
     def get(self, client, query=None, uri=None, **kwargs):
         rp = ResourcePattern.parse(self.options.item)
@@ -100,7 +101,8 @@ class ResourceManager(object):
         if response.status_code not in VALID_GET_STATUS_RESPONSES:
             raise RestServerException('Cannot get "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
     
-        return self.object_class(response.content, client=client, absolute_url=response.request.uri)
+        data = rp.clean(response)
+        return self.object_class(data, client=client, absolute_url=response.request.uri)
 
 
 class RelatedResource(object):
