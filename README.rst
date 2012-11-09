@@ -2,17 +2,21 @@
 RestORM
 =======
 
-Inspired by Django's ORM, **RestORM** allows you to interact with resources
-as if they were objects.
+RestORM allows you to interact with resources as if they were objects (object
+relational mapping), mock entire webservices and incorporate custom client
+logic.
+
 
 Description
 ===========
 
 Most RESTful webservices are very easy to access with very little code.
-**RestORM** is just a small layer on top of ``httplib2.Http`` to get a
-response from a webservice. However, instead of regular Python ``dict``
-objects, you'll get a ``dict``-like object that knows how to access related
-resources as well.
+RestORM is just a small layer on top of ``httplib2.Http`` to get a response 
+from a webservice. However, instead of regular Python ``dict`` objects, you'll
+get a ``dict``-like object that knows how to access related resources as well.
+
+Until a version 1.0 release, backwards incompatible changes may be introduced
+in future 0.x versions.
 
 Features
 --------

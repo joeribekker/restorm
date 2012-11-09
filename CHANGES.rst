@@ -1,8 +1,9 @@
+=======
 Changes
 =======
 
 0.1
 ---
-**November 14, 2011**
+**November 9, 2012**
 
-- Initial version.
+- Initial version released on PyPI.
