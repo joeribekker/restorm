@@ -49,9 +49,12 @@ class FileResponse(MockResponse):
 
 
 class BaseMockClient(object):
+    root_uri = ''
+
     def __init__(self, *args, **kwargs):
         self.responses = kwargs.pop('responses', [])
-        self.root_uri = kwargs.pop('root_uri', '')
+        if 'root_uri' in kwargs:
+            self.root_uri = kwargs.pop('root_uri')
 
         self._response_index = 0
     
@@ -100,9 +103,12 @@ class MockClient(BaseMockClient, ClientMixin):
 
 
 class BaseMockApiClient(object):
+    root_uri = ''
+    
     def __init__(self, *args, **kwargs):
         self.responses = kwargs.pop('responses', {})
-        self.root_uri = kwargs.pop('root_uri', '')
+        if 'root_uri' in kwargs:
+            self.root_uri = kwargs.pop('root_uri')
 
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
         if not uri.startswith(self.root_uri):

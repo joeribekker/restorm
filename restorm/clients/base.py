@@ -1,4 +1,5 @@
 import logging
+import urlparse
 import httplib2
 
 try:
@@ -64,6 +65,9 @@ class Response(dict):
 
 class ClientMixin(object):
     def create_request(self, uri, method, body, headers):
+        if not uri.startswith(self.root_uri):
+            uri = urlparse.urljoin(self.root_uri, uri)
+
         return Request(uri, method, body, headers)
     
     def create_response(self, response_headers, response_content, request):
@@ -86,6 +90,14 @@ class BaseClient(httplib2.Http):
     """
     Simple REST client based on ``httplib2.Http``.
     """
+    root_uri = ''
+    
+    def __init__(self, *args, **kwargs):
+        if 'root_uri' in kwargs:
+            self.root_uri = kwargs.pop('root_uri')
+
+        super(BaseClient, self).__init__(*args, **kwargs)
+    
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
         # Create request.
         request = self.create_request(uri, method, body, headers)

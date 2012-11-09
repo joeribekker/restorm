@@ -15,11 +15,9 @@ from restorm.resource import Resource
 
 
 class TwitterClient(oauth.Client, JSONClientMixin):
-    root = 'https://api.twitter.com/1.1/'
+    root_uri = 'https://api.twitter.com/1.1/'
     
     def request(self, uri, method='GET', body=None, headers=None, *args, **kwargs):
-        if not uri.startswith(self.root):
-            uri = urlparse.urljoin(self.root, uri)
         if body is None:
             body = ''
 

@@ -65,15 +65,13 @@ class FlickrPhoto(Resource):
 
 
 class FlickrClient(BaseClient, JSONClientMixin):
-    root = 'http://api.flickr.com/services/rest/'
+    root_uri = 'http://api.flickr.com/services/rest/'
     
     def __init__(self, api_key, *args, **kwargs):
         self.api_key = api_key
         super(FlickrClient, self).__init__(*args, **kwargs)
 
     def request(self, uri, method='GET', body=None, headers=None, *args, **kwargs):
-        if not uri.startswith(self.root):
-            uri = urlparse.urljoin(self.root, uri)
         if body is None:
             body = ''
             
