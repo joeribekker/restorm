@@ -1,4 +1,3 @@
-=======
 RestORM
 =======
 
@@ -8,7 +7,7 @@ logic.
 
 
 Description
-===========
+-----------
 
 Most RESTful webservices are very easy to access with very little code.
 RestORM is just a small layer on top of ``httplib2.Http`` to get a response 
@@ -26,7 +25,7 @@ Features
   clients (like oauth).
 * Extensive mocking module allows you to mock webservice responses, or even 
   complete webservices.
-
+* Examples for Twitter and Flickr API.
 
 Getting started
 ===============
@@ -113,11 +112,11 @@ Contribute
 
 #. Get the code from Github::
 
-    $ git clone git://github.com/joeribekker/restclient.git
+    $ git clone git://github.com/joeribekker/restorm.git
 
 #. Create and activate a virtual environment::
 
-    $ cd restclient
+    $ cd restorm
     $ virtualenv .
     $ source bin/activate
 

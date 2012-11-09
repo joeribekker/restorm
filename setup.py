@@ -48,7 +48,7 @@ setup(
     test_suite='nose.collector',
 
     # Metadata for PyPI.
-    description='RestClient allows you to interact with resources as if they were objects.',
+    description='RestORM allows you to interact with resources as if they were objects.',
     long_description='\n\n'.join([readme, changes]),
     author='Joeri Bekker',
     author_email='joeri@maykinmedia.nl',
