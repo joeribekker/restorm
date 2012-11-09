@@ -108,13 +108,6 @@ You can simply access the ``Book`` resource::
         )
 
 
-Install
-=======
-
-It's not yet in PyPI. If you want to use it in your project, you should know 
-that this is still a work in progress and you probably know what to do.
-
-
 Contribute
 ==========
 
