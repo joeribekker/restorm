@@ -1,7 +1,8 @@
+from restorm.rest import RestObject
 from unittest2 import TestCase
 
 from restorm.clients.tests import LibraryApiClient
-from restorm.resource import ResourceManager, ResourceOptions, Resource
+from restorm.resource import ResourceManager, ResourceOptions, Resource, SimpleResource
 
 
 class ResourceTests(TestCase):
@@ -25,19 +26,19 @@ class ResourceTests(TestCase):
             pass
 
         self.assertTrue(hasattr(Book, '_meta'))
-        self.assertTrue(isinstance(Book._meta, ResourceOptions))
+        self.assertIsInstance(Book._meta, ResourceOptions)
         self.assertEqual(Book._meta.list, '')
         self.assertEqual(Book._meta.item, r'^book/(?P<isbn>\d)$')
         self.assertEqual(Book._meta.root, '')
 
         self.assertTrue(hasattr(Author, '_meta'))
-        self.assertTrue(isinstance(Author._meta, ResourceOptions))
+        self.assertIsInstance(Author._meta, ResourceOptions)
         self.assertEqual(Author._meta.list, (r'^author/$', 'author_set'))
         self.assertEqual(Author._meta.item, r'^author/(?P<id>\d)$')
         self.assertEqual(Author._meta.root, 'http://someotherdomain/api/')
         
         self.assertTrue(hasattr(Store, '_meta'))
-        self.assertTrue(isinstance(Store._meta, ResourceOptions))
+        self.assertIsInstance(Store._meta, ResourceOptions)
         self.assertEqual(Store._meta.list, '')
         self.assertEqual(Store._meta.item, '')
         self.assertEqual(Store._meta.root, '')
@@ -57,10 +58,10 @@ class ResourceTests(TestCase):
         class Author(Resource):
             pass
                 
-        self.assertTrue(isinstance(Book.objects, ResourceManager))
+        self.assertIsInstance(Book.objects, ResourceManager)
         self.assertTrue(Book.objects.object_class, Book)
 
-        self.assertTrue(isinstance(Author.objects, ResourceManager))
+        self.assertIsInstance(Author.objects, ResourceManager)
         self.assertTrue(Author.objects.object_class, Author)
 
         self.assertNotEqual(Book.objects, Author.objects)
@@ -89,11 +90,11 @@ class ResourceTests(TestCase):
         class Author(Resource):
             pass
 
-        self.assertTrue(isinstance(Book.objects, BookManager))
+        self.assertIsInstance(Book.objects, BookManager)
         self.assertTrue(hasattr(Book.objects, 'filter_on_author'))
         self.assertTrue(Book.objects.object_class, Book)
 
-        self.assertTrue(isinstance(Author.objects, ResourceManager))
+        self.assertIsInstance(Author.objects, ResourceManager)
         self.assertTrue(Author.objects.object_class, Author)
 
         self.assertNotEqual(Book.objects, Author.objects)
@@ -148,6 +149,25 @@ class ResourceTests(TestCase):
         self.assertTrue(hasattr(book, 'some_instance_attribute_after_init'))
         self.assertEqual(book.some_instance_attribute_after_init, 'foobar')
     
+    def test_get(self):
+        class Book(Resource):
+            class Meta:
+                item = r'^book/(?P<isbn>\d)$'
+
+        book = Book.objects.get(client=self.client, isbn='978-1441413024')
+        self.assertIsInstance(book, Resource)
+        self.assertIsInstance(book.data, RestObject)
+        self.assertEqual(book.data['title'], 'Dive into Python')
+
+    def test_all(self):
+        class Book(Resource):
+            class Meta:
+                list = r'^book/$'
+
+        result = Book.objects.all(client=self.client)
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+    
     def test_related_resources(self):
         class Book(Resource):
             class Meta:
@@ -160,6 +180,30 @@ class ResourceTests(TestCase):
         author_url = book.data['author']
         author = book.data.author
 
-        self.assertTrue(isinstance(author, Resource))
+        self.assertIsInstance(author, Resource)
         self.assertEqual(author_url, author.absolute_url)
         self.assertEqual(author.data['name'], 'Mark Pilgrim')
+
+
+class SimpleResourceTests(TestCase):
+    def setUp(self):
+        self.client = LibraryApiClient()
+
+    def test_get(self):
+        class Book(SimpleResource):
+            class Meta:
+                item = r'^book/(?P<isbn>\d)$'
+
+        book = Book.objects.get(client=self.client, isbn='978-1441413024')
+        self.assertIsInstance(book, SimpleResource)
+        self.assertIsInstance(book.data, dict)
+        self.assertEqual(book.data['title'], 'Dive into Python')
+
+    def test_all(self):
+        class Book(SimpleResource):
+            class Meta:
+                list = r'^book/$'
+
+        result = Book.objects.all(client=self.client)
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)

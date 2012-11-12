@@ -22,6 +22,7 @@ install_requires = [
 tests_require = [
     'nose',
     'unittest2',
+    'mock',
 ]
 examples_require = [
     'oauth2',

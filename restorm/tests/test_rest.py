@@ -69,11 +69,11 @@ class RestifyTests(TestCase):
         
         rest_data = restify(json_data, self.mock_resource)
         
-        self.assertTrue(isinstance(rest_data, RestObject))
+        self.assertIsInstance(rest_data, RestObject)
         #self.assertTrue(rest_data.resource_url)
 
         # Nested
-        self.assertTrue(isinstance(rest_data['author'], RestObject))
+        self.assertIsInstance(rest_data['author'], RestObject)
 
 #    def test(self):
 #        # Before anything is instantiated, Book and RestObject should not have
