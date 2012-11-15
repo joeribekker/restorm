@@ -78,7 +78,7 @@ You can simply access the ``Book`` resource::
 
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
     >>> book.data['title'] # Get the value of the key "name".
-    u'Dive Into Python'
+    u'Dive into Python'
     >>> book.data['author'] # Get the value of the key "author".
     u'http://www.example.com/api/author/1'
     >>> author = book.data.author # Perform a GET on the "author" resource.
@@ -102,7 +102,7 @@ You can simply access the ``Book`` resource::
                 'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://localhost/api/author/1"}',
                 # ...
             },
-            root_uri='http://www.example.com/api/'
+            root_uri='http://localhost/api/'
         )
 
 
