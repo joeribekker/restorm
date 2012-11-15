@@ -23,7 +23,8 @@ def main(argv):
 
     # Create a playground HTTP server that handles requests from the 
     # ``LibraryApiClient``.     
-    server = LibraryApiClient().create_server(ip_address, int(port))
+    api = LibraryApiClient('http://%s:%s/api/' % (ip_address, port))
+    server = api.create_server(ip_address, int(port))
 
     print 'Mock library webservice is running at http://%s:%s' % (ip_address, port)
     print 'Quit the server with CTRL-C.'

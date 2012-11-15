@@ -29,8 +29,12 @@ class LibraryApiClient(BaseMockApiClient, JSONClientMixin):
     NOTE: This is a very inconsistent webservice. All resources are for
     demonstration purposes and show different kinds of ReST structures.
     """
-    def __init__(self):
-        root_uri = 'http://localhost/api/'
+    def __init__(self, root_uri=None):
+        # Creating a mock server from this MockApiClient, related resource 
+        # URI's need to show the same IP address and port.
+        if not root_uri:
+            root_uri = 'http://localhost/api/'
+
         responses = {
             # Book list view contains a ``list`` of ``objects`` representing a
             # (small part of the) book.
