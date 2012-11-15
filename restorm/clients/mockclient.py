@@ -1,6 +1,8 @@
+import SimpleHTTPServer
 import urlparse
 import os
 
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from restorm.clients.base import ClientMixin
 
 
@@ -132,8 +134,44 @@ class BaseMockApiClient(object):
         response_headers.update(custom_response_headers)
 
         return self.create_response(response_headers, response_content, request)
+
+    def create_server(self, ip_address, port, handler=None):
+        """
+        Creates a server instance and returns it. The server instance has 
+        access to this mock to provide the responses.
+        """
+        if handler is None:
+            MockHandler.mock_api = self
+            handler = MockHandler
         
+        return HTTPServer((ip_address, port), handler)
+
+
+class MockHandler(BaseHTTPRequestHandler):
+    mock_api = None
     
+    def do_GET(self):
+        self.process_request('GET')
+        
+    def do_POST(self):
+        self.process_request('POST')
+        
+    def do_PUT(self):
+        self.process_request('PUT')
+        
+    def do_DELETE(self):
+        self.process_request('DELETE')
+
+    def process_request(self, method, body=None):        
+        response = self.mock_api.request(self.path, method, body)
+
+        self.send_response(response.status_code)
+        for k, v in response.headers.items():
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(response.raw_content)
+
+
 class MockApiClient(BaseMockApiClient, ClientMixin):
     """
     A client that emulates communicating with an entire mock API.

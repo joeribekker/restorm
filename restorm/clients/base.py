@@ -53,6 +53,7 @@ class Response(dict):
 
         self.client = client
         self.headers = response_headers
+        self.raw_content = response_content
         self.content = response_content
         self.request = request
 
@@ -64,14 +65,65 @@ class Response(dict):
 
 
 class ClientMixin(object):
-    def create_request(self, uri, method, body, headers):
+    """
+    This mixin contains ``MIME_TYPE`` which is ``None`` by default.
+    """
+    MIME_TYPE = None
+    
+    def serialize(self, data):
+        """
+        Serialize the data. Subclasses should override this function to 
+        implement their own serializing scheme. This implementation simply
+        returns the data passed to this function.
+
+        Data from the serialize function passed to the deserialize function, 
+        and vice versa, should return the same value.
+        
+        :param data: Raw (response) data.
+        
+        :return: Serialized data.
+        """
+        return data
+    
+    def deserialize(self, data):
+        """
+        Deserialize the data. Subclasses should override this function to 
+        implement their own deserializing scheme. This implementation simply
+        returns the data passed to this function.
+
+        Data from the serialize function passed to the deserialize function, 
+        and vice versa, should return the same value.
+        
+        :param data: Serialized data.
+        
+        :return: Raw data.
+        """
+        return data
+    
+    def create_request(self, uri, method, body=None, headers=None):
         if not uri.startswith(self.root_uri):
             uri = urlparse.urljoin(self.root_uri, uri)
 
-        return Request(uri, method, body, headers)
+        if headers is None:
+            headers = {}
+
+        if self.MIME_TYPE:
+            headers.update({
+                'Accept': self.MIME_TYPE,
+                'Content-Type': self.MIME_TYPE,
+            })
+
+        data = self.deserialize(body)
+
+        return Request(uri, method, data, headers)
     
     def create_response(self, response_headers, response_content, request):
-        return Response(self, response_headers, response_content, request)
+        response = Response(self, response_headers, response_content, request)
+
+        if not self.MIME_TYPE or ('Content-Type' in response and response['Content-Type'].startswith(self.MIME_TYPE)):
+            response.content = self.serialize(response_content)
+
+        return response 
 
     def get(self, uri):
         return self.request(uri, 'GET')

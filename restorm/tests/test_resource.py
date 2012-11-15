@@ -1,7 +1,7 @@
 from restorm.rest import RestObject
 from unittest2 import TestCase
 
-from restorm.clients.tests import LibraryApiClient
+from restorm.examples.mock.api import LibraryApiClient
 from restorm.resource import ResourceManager, ResourceOptions, Resource, SimpleResource
 
 

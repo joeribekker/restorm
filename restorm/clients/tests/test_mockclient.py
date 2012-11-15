@@ -2,7 +2,7 @@ import os
 
 from unittest2 import TestCase
 
-from restorm.clients.tests import LibraryApiClient
+from restorm.examples.mock.api import LibraryApiClient
 from restorm.clients.mockclient import MockClient, StringResponse, FileResponse, MockResponse, BaseMockApiClient
 from restorm.clients.jsonclient import JSONClientMixin
 from restorm.resource import Resource
@@ -64,7 +64,6 @@ class MockClientTests(TestCase):
         self.assertEqual(response.request.uri, url)
 
 
-
 class MockApiClientTests(TestCase):
     def setUp(self):
         self.client = LibraryApiClient()
@@ -73,14 +72,14 @@ class MockApiClientTests(TestCase):
         response = self.client.get('book/')
         
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, self.client.responses['book/']['GET'][1])
+        self.assertEqual(response.raw_content, self.client.responses['book/']['GET'][1])
         
     def test_post(self):
         response = self.client.post('search/', {'q': 'Python'})
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['X-Cache'], self.client.responses['search/']['POST'][0]['X-Cache'])
-        self.assertEqual(response.content, self.client.responses['search/']['POST'][1])
+        self.assertEqual(response.raw_content, self.client.responses['search/']['POST'][1])
 
     def test_page_not_found(self):
         uri = 'book/2'
@@ -108,11 +107,11 @@ class MockApiClientTests(TestCase):
                 item = r'^author/(?P<id>\d)$'
 
         book = Book.objects.get(isbn='978-1441413024', client=self.client)
-        self.assertEqual(book.data['title'], self.client.responses['book/978-1441413024']['GET'][1]['title'])
-        self.assertEqual(book.data['author'], self.client.responses['book/978-1441413024']['GET'][1]['author'])
+        self.assertEqual(book.data['title'], 'Dive into Python')
+        self.assertEqual(book.data['author'], '%sauthor/1' % self.client.root_uri)
         
         author = book.data.author
-        self.assertEqual(author.data['name'], self.client.responses['author/1']['GET'][1]['name'])
+        self.assertEqual(author.data['name'], 'Mark Pilgrim')
         
 
 class JSONMockApiClientTests(TestCase):

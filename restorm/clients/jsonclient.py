@@ -15,36 +15,11 @@ except ImportError:
 class JSONClientMixin(ClientMixin):
     MIME_TYPE = 'application/json'
 
-    def create_request(self, uri, method, body=None, headers=None):
-        if headers is None:
-            headers = {}
-
-        headers.update({
-            'Accept': self.MIME_TYPE,
-            'Content-Type': self.MIME_TYPE,
-        })
-        
-        return super(JSONClientMixin, self).create_request(uri, method, body, headers)
-
-    def create_response(self, response_headers, response_content, request):
-        response = super(JSONClientMixin, self).create_response(response_headers, response_content, request)
-
-        if 'Content-Type' in response and response['Content-Type'].startswith(self.MIME_TYPE):
-            response.content = json.loads(response.content)
-            
-        return response
-
-    def get(self, uri):
-        return super(JSONClientMixin, self).get(uri)
-
-    def post(self, uri, data):
-        return super(JSONClientMixin, self).post(uri, json.dumps(data))
-
-    def put(self, uri, data):
-        return super(JSONClientMixin, self).put(uri, json.dumps(data))
-
-    def delete(self, uri):
-        return super(JSONClientMixin, self).delete(uri)
+    def serialize(self, data):
+        return json.loads(data)
+    
+    def deserialize(self, data):
+        return json.dumps(data)
 
 
 class JSONClient(BaseClient, JSONClientMixin):

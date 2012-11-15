@@ -48,15 +48,15 @@ keep it simple, both lists contain only 1 item::
     
     client = MockApiClient(
         responses={
-            '/api/book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
-                'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
+            'book/': {
+                'GET': ({'Status': 200}, [{'id': 1, 'title': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
+                'POST': ({'Status': 201, 'Location': 'http://www.localhost/api/book/2'}, ''),
             },
-            '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
-            '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
-            '/api/author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
+            'book/1': {'GET': ({'Status': 200}, {'id': 1, 'title': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
+            'author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://localhost/author/1'}])},
+            'author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
         },
-        root_uri='http://www.example.com'
+        root_uri='http://localhost/api/'
     )
 
 Define resources
@@ -68,9 +68,8 @@ Setup your client side resource definitions::
     
     class Book(Resource):
         class Meta:
-            list = (r'^book/$', 'book_set')
+            list = r'^book/$'
             item = r'^book/(?P<id>\d)$'
-            root = 'http://www.example.com/api/'
 
 Make it work
 ------------
@@ -78,7 +77,7 @@ Make it work
 You can simply access the ``Book`` resource::
 
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
-    >>> book.data['name'] # Get the value of the key "name".
+    >>> book.data['title'] # Get the value of the key "name".
     u'Dive Into Python'
     >>> book.data['author'] # Get the value of the key "author".
     u'http://www.example.com/api/author/1'
@@ -100,7 +99,7 @@ You can simply access the ``Book`` resource::
         client = JSONMockApiClient(
             responses={
                 # Note the difference. The content is now JSON.
-                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
+                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://localhost/api/author/1"}',
                 # ...
             },
             root_uri='http://www.example.com/api/'
