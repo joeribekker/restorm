@@ -16,7 +16,7 @@ You can also start it as a server and connect to it with your browser::
 
     $ python -m restorm.examples.mock.serv
     
-Shut it down with CTRL-Break.
+Shut it down with CTRL-C.
 """
 from restorm.clients.jsonclient import JSONClientMixin, json
 from restorm.clients.mockclient import BaseMockApiClient
