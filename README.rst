@@ -42,7 +42,9 @@ You can also use ``FileResponse`` class to return the contents of a file as
 response in combination with the ``MockApiClient``.
 
 The mock webservice below contains a list of books and a list of authors. To 
-keep it simple, both lists contain only 1 item::
+keep it simple, both lists contain only 1 item:
+
+.. sourcecode:: python
 
     from restorm.clients.mockclient import MockApiClient
     
@@ -62,7 +64,9 @@ keep it simple, both lists contain only 1 item::
 Define resources
 ----------------
 
-Setup your client side resource definitions::
+Setup your client side resource definitions:
+
+.. sourcecode:: python
 
     from restorm.resource import Resource
     
@@ -74,7 +78,9 @@ Setup your client side resource definitions::
 Make it work
 ------------
 
-You can simply access the ``Book`` resource::
+You can simply access the ``Book`` resource and related resources:
+
+.. sourcecode:: python
 
     >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
     >>> book.data['title'] # Get the value of the key "name".
@@ -88,8 +94,10 @@ You can simply access the ``Book`` resource::
 
 .. note:: As you may have noticed, the response content contains actual Python 
     objects. The ``MockApiClient`` simply returns the content as is. If you 
-    prefer using JSON, you can achieve the same behaviour with::
-       
+    prefer using JSON, you can achieve the same behaviour with:
+
+.. sourcecode:: python
+
         from restorm.clients.mockclient import BaseMockApiClient
         from restorm.clients.jsonclient import JSONClientMixin
         
