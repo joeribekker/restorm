@@ -2,6 +2,7 @@ import logging
 import urllib
 import re
 
+from restorm.conf import settings
 from restorm.rest import restify
 from restorm.exceptions import RestServerException
 from restorm.utils import reverse
@@ -76,7 +77,11 @@ class ResourceManager(object):
             self._options = self.object_class._meta
             return self._options
 
-    def all(self, client, query=None, uri=None, **kwargs):
+    def all(self, client=None, query=None, uri=None, **kwargs):
+        client = client or settings.DEFAULT_CLIENT
+        if client is None:
+            raise ValueError('A client instance must be provided or DEFAULT_CLIENT must be set in settings.')
+
         rp = ResourcePattern.parse(self.options.list)
         if uri:
             kwargs = rp.params_from_uri(uri)
@@ -90,7 +95,11 @@ class ResourceManager(object):
         data = rp.clean(response)
         return data
     
-    def get(self, client, query=None, uri=None, **kwargs):
+    def get(self, client=None, query=None, uri=None, **kwargs):
+        client = client or settings.DEFAULT_CLIENT
+        if client is None:
+            raise ValueError('A client instance must be provided or DEFAULT_CLIENT must be set in settings.')
+
         rp = ResourcePattern.parse(self.options.item)
         if uri:
             kwargs = rp.params_from_uri(uri)
