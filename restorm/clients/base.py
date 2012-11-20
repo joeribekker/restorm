@@ -72,14 +72,16 @@ class ClientMixin(object):
     
     def serialize(self, data):
         """
-        Serialize the data. Subclasses should override this function to 
-        implement their own serializing scheme. This implementation simply
-        returns the data passed to this function.
+        Produces a serialized version suitable for transfer over the wire.
+        
+        Subclasses should override this function to implement their own 
+        serializing scheme. This implementation simply returns the data passed
+        to this function.
 
         Data from the serialize function passed to the deserialize function, 
         and vice versa, should return the same value.
         
-        :param data: Raw (response) data.
+        :param data: Data.
         
         :return: Serialized data.
         """
@@ -87,16 +89,18 @@ class ClientMixin(object):
     
     def deserialize(self, data):
         """
-        Deserialize the data. Subclasses should override this function to 
-        implement their own deserializing scheme. This implementation simply
-        returns the data passed to this function.
+        Deserialize the data from the raw data.
+        
+        Subclasses should override this function to implement their own 
+        deserializing scheme. This implementation simply returns the data
+        passed to this function.
 
         Data from the serialize function passed to the deserialize function, 
         and vice versa, should return the same value.
         
         :param data: Serialized data.
         
-        :return: Raw data.
+        :return: Data.
         """
         return data
     
@@ -113,7 +117,7 @@ class ClientMixin(object):
                 'Content-Type': self.MIME_TYPE,
             })
 
-        data = self.deserialize(body)
+        data = self.serialize(body)
 
         return Request(uri, method, data, headers)
     
@@ -121,7 +125,7 @@ class ClientMixin(object):
         response = Response(self, response_headers, response_content, request)
 
         if not self.MIME_TYPE or ('Content-Type' in response and response['Content-Type'].startswith(self.MIME_TYPE)):
-            response.content = self.serialize(response_content)
+            response.content = self.deserialize(response_content)
 
         return response 
 

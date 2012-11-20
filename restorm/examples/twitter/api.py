@@ -15,12 +15,12 @@ from restorm.resource import Resource
 
 
 class TwitterClient(oauth.Client, JSONClientMixin):
+    # Using the JSONClientMixin auto sets the mime type but this results in 
+    # empty Twitter API responses.
+    MIME_TYPE = None
     root_uri = 'https://api.twitter.com/1.1/'
     
     def request(self, uri, method='GET', body=None, headers=None, *args, **kwargs):
-        if body is None:
-            body = ''
-
         # Use JSON format in this client: Set the extension to JSON.
         parsed_url = urlparse.urlparse(uri)
         if not parsed_url.path.endswith('.json'):

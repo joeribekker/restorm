@@ -51,7 +51,7 @@ keep it simple, both lists contain only 1 item:
     client = MockApiClient(
         responses={
             'book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'title': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
+                'GET': ({'Status': 200}, [{'id': 1, 'title': 'Dive into Python', 'resource_url': 'http://localhost/api/book/1'}]),
                 'POST': ({'Status': 201, 'Location': 'http://www.localhost/api/book/2'}, ''),
             },
             'book/1': {'GET': ({'Status': 200}, {'id': 1, 'title': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
@@ -86,7 +86,7 @@ You can simply access the ``Book`` resource and related resources:
     >>> book.data['title'] # Get the value of the key "name".
     u'Dive into Python'
     >>> book.data['author'] # Get the value of the key "author".
-    u'http://www.example.com/api/author/1'
+    u'http://localhost/api/author/1'
     >>> author = book.data.author # Perform a GET on the "author" resource.
     >>> author.data['name']
     u'Mark Pilgrim'

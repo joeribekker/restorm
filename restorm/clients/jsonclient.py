@@ -16,10 +16,14 @@ class JSONClientMixin(ClientMixin):
     MIME_TYPE = 'application/json'
 
     def serialize(self, data):
-        return json.loads(data)
+        if data is None:
+            return ''
+        return json.dumps(data)
     
     def deserialize(self, data):
-        return json.dumps(data)
+        if data == '':
+            return None
+        return json.loads(data)
 
 
 class JSONClient(BaseClient, JSONClientMixin):
