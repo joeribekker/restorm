@@ -1,7 +1,7 @@
 import mock
 from unittest2 import TestCase
 
-from restorm.clients.jsonclient import JSONClient
+from restorm.clients.jsonclient import JSONClient, JSONClientMixin
 
 
 @mock.patch('httplib2.Http.request')
@@ -25,3 +25,35 @@ class JSONClientTests(TestCase):
         data = response.content
         self.assertIsInstance(data, basestring)
         self.assertEqual(data, '{"foo": "bar"}')
+
+
+class JSONClientMixinTests(TestCase):
+    def setUp(self):
+        self.mixin = JSONClientMixin()
+    
+    def test_empty(self):
+        original_data = None
+        
+        serialized_data = self.mixin.serialize(original_data)
+        self.assertEqual(serialized_data, '')
+        
+        deserialized_data = self.mixin.deserialize(serialized_data)
+        self.assertEqual(original_data, deserialized_data)
+    
+    def test_empty_string(self):
+        original_data = ''
+        
+        serialized_data = self.mixin.serialize(original_data)
+        self.assertEqual(serialized_data, '""')
+        
+        deserialized_data = self.mixin.deserialize(serialized_data)
+        self.assertEqual(original_data, deserialized_data)
+    
+    def test_complex_data(self):
+        original_data = {'a': ['b', 'c', 1, 2.3]}
+        
+        serialized_data = self.mixin.serialize(original_data)
+        self.assertEqual(serialized_data, '{"a": ["b", "c", 1, 2.3]}')
+        
+        deserialized_data = self.mixin.deserialize(serialized_data)
+        self.assertEqual(original_data, deserialized_data)
