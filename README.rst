@@ -101,10 +101,10 @@ You can simply access the ``Book`` resource and related resources:
         from restorm.clients.mockclient import BaseMockApiClient
         from restorm.clients.jsonclient import JSONClientMixin
         
-        class JSONMockApiClient(BaseMockApiClient, JSONClientMixin):
+        class MockJSONApiClient(BaseMockApiClient, JSONClientMixin):
             pass
             
-        client = JSONMockApiClient(
+        client = MockJSONApiClient(
             responses={
                 # Note the difference. The content is now JSON.
                 'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://localhost/api/author/1"}',

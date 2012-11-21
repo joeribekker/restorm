@@ -1,4 +1,5 @@
 import os
+from restorm.clients.base import ClientMixin
 
 from unittest2 import TestCase
 
@@ -128,10 +129,10 @@ class JSONMockApiClientTests(TestCase):
                 '{"id": 1, "name": "Dive into Python", "author": "http://www.example.com/api/author/1"}')}
         }
 
-        class JSONMockApiClient(BaseMockApiClient, JSONClientMixin):
+        class MockJSONApiClient(BaseMockApiClient, JSONClientMixin):
             pass
 
-        self.client = JSONMockApiClient(responses=self.responses, root_uri='http://www.example.com/api/')
+        self.client = MockJSONApiClient(responses=self.responses, root_uri='http://www.example.com/api/')
 
     def test_get_json(self):
         response = self.client.get('book/1')
@@ -142,3 +143,53 @@ class JSONMockApiClientTests(TestCase):
 
         self.assertEqual(response.content['name'], 'Dive into Python')
         self.assertEqual(response.content['author'], 'http://www.example.com/api/author/1')
+
+
+class MockPostApiClientTests(TestCase):
+    """
+    Tests a whole different type of mock api, more like SOAP. Not sure whether
+    this type of mock client should be in by default.
+    """
+    def setUp(self):
+        self.responses = {
+            '{"function": "get_book_list"}': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python'}]),
+            '{"function": "get_book", "params": {"id": 1}}': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author_id': 1}),
+            '{"function": "get_author_list"}': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim'}]),
+            '{"function": "get_author", "params": {"id": 1}}': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})
+        }
+        
+        class MockPostApiClient(BaseMockApiClient, ClientMixin):
+            """
+            Example client that only handles POST requests. Based on the request body,
+            a response is given. In this example we also don't care about the URI and
+            also use a different responses format.
+        
+            **Example**
+            
+            >>> client = MockPostApiClient(responses={
+            ...     '{"function": "get_book_list"}': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python'}]),
+            ...     '{"function": "get_book", "params": {"id": 1}}': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'author_id': 1}]),
+            ...     '{"function": "get_author_list"}': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim'}]),
+            ...     '{"function": "get_author", "params": {"id": 1}}': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})
+            ... }, root_uri='http://localhost/')
+            """
+    
+            def get_response_from_request(self, request):
+                # Check if the body can be found in our response list. Very inflexible
+                # and error prone but good enough for our example.
+                if request.body not in self.responses:
+                    response_headers, response_content = {'Status': 405}, 'Method not allowed'
+                # Otherwise, return the headers and content from the responses.
+                else:
+                    response_headers, response_content = self.responses.get(request.body)
+                    
+                return response_headers, response_content
+            
+        self.client = MockPostApiClient(responses=self.responses, root_uri='http://localhost/')
+        
+    def test_get_book(self):
+        response = self.client.post('/', '{"function": "get_book", "params": {"id": 1}}')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content['name'], 'Dive into Python')
+        self.assertEqual(response.content['author_id'], 1)

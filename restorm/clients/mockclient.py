@@ -112,21 +112,45 @@ class BaseMockApiClient(object):
         if 'root_uri' in kwargs:
             self.root_uri = kwargs.pop('root_uri')
 
+    def get_response_from_request(self, request):
+        """
+        You may override this method to implement your own response logic based
+        on given request. You can even modify the ``self.responses`` based on 
+        some POST, PUT or DELETE request.
+        
+        This is the only method that looks at ``self.responses``. Therefore,
+        overriding this method also allows you to create a custom format for
+        this container variable.
+        """
+        
+        # Get mock response for URI (look for full URI and path URI).
+        response_methods = self.responses.get(request.uri) or self.responses.get(request.uri[len(self.root_uri):])
+        
+        # If the URI is not found, return a 404.
+        if response_methods is None:
+            response_headers, response_content = {'Status': 404}, 'Page not found'
+        # If the URI is found, but not the method, return a 405.
+        elif request.method not in response_methods:
+            response_headers, response_content = {'Status': 405}, 'Method not allowed'
+        # Otherwise, return the headers and content from the responses.
+        else:
+            response_headers, response_content = response_methods[request.method]
+            
+        return response_headers, response_content
+
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
+        """
+        The main request method. Users should override the 
+        ``get_response_from_request`` method for custom response logic.
+        """
         if not uri.startswith(self.root_uri):
             uri = urlparse.urljoin(self.root_uri, uri)
         
         request = self.create_request(uri, method, body, headers)
 
-        # Get mock response for URI (look for full URI and path URI).
-        response_methods = self.responses.get(request.uri) or self.responses.get(request.uri[len(self.root_uri):])
-        if response_methods is None:
-            custom_response_headers, response_content = {'Status': 404}, 'Page not found'
-        elif request.method not in response_methods:
-            custom_response_headers, response_content = {'Status': 405}, 'Method not allowed'
-        else:
-            custom_response_headers, response_content = response_methods[request.method]
+        custom_response_headers, response_content = self.get_response_from_request(request)
 
+        # Default headers.
         response_headers = {
             'Server': 'Mock API',
             'Status': 0,
@@ -185,12 +209,12 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     
     >>> client = MockApiClient(responses={
     ...     '/api/book/': {
-    ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://www.example.com/api/book/1'}]),
-    ...         'POST': ({'Status': 201, 'Location': 'http://www.example.com/api/book/2'}, ''),
+    ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://localhost/api/book/1'}]),
+    ...         'POST': ({'Status': 201, 'Location': 'http://localhost/api/book/2'}, ''),
     ...     },
-    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://www.example.com/api/author/1'})},
-    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://www.example.com/api/author/1'}])},
+    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
+    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://localhost/api/author/1'}])},
     ...     '/api/author/1': {'GET': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
-    ... }, root_uri='http://www.example.com')
+    ... }, root_uri='http://localhost/')
     """
     pass
