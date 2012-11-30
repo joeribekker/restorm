@@ -1,23 +1,27 @@
 """
-NOTE: This example is also used in internal unit tests. The ``MockApiClient`` 
-and related classes is specifically made for the purpose of unit testing, or
-"playground" testing.
+.. note:: This example is also used in internal unit tests. The 
+   ``MockApiClient`` and related classes are specifically made for the purpose
+   of unit testing, or "playground" testing.
 
 The example here is a JSON webservice. You can instantiate it and perform 
-requests from the console::
+requests from the console:
 
-    >>> from restorm.examples.mock.api import LibraryApiClient
-    >>> client = LibraryApiClient()
-    >>> response = client.get('author/1')
-    >>> response.raw_content
-    '{"books": [{"resource_url": "http://localhost/api/book/978-1441413024", "isbn": "978-1441413024", "title": "Dive into Python"}], "id": 1, "name": "Mark Pilgrim"}'
+>>> from restorm.examples.mock.api import LibraryApiClient
+>>> client = LibraryApiClient()
+>>> response = client.get('author/1')
+>>> response.raw_content
+'{"books": [{"resource_url": "http://localhost/api/book/978-1441413024", "isbn": "978-1441413024", "title": "Dive into Python"}], "id": 1, "name": "Mark Pilgrim"}'
 
 You can also start it as a server and connect to it with your browser, or let
 your application connect to it::
 
-    $ python -m restorm.examples.mock.serv
+    $ python -m restorm.examples.mock.serv 127.0.0.1:8000
     
-Shut it down with CTRL-C.
+Shut it down with CTRL-C. The above Python script basically does:
+
+>>> server = client.create_server()
+>>> server.serve_forever()
+
 """
 from restorm.clients.jsonclient import JSONClientMixin, json
 from restorm.clients.mockclient import BaseMockApiClient
@@ -27,8 +31,9 @@ class LibraryApiClient(BaseMockApiClient, JSONClientMixin):
     """
     Mock library webservice containing books and authors.
 
-    NOTE: This is a very inconsistent webservice. All resources are for
-    demonstration purposes and show different kinds of ReST structures.
+    .. note:: This is a very inconsistent webservice. All resources are for
+       demonstration purposes and show different kinds of ReST structures.
+
     """
     def __init__(self, root_uri=None):
         # Creating a mock server from this MockApiClient, related resource 
@@ -37,6 +42,21 @@ class LibraryApiClient(BaseMockApiClient, JSONClientMixin):
             root_uri = 'http://localhost/api/'
 
         responses = {
+            # The index.
+            '': {
+                'GET': ({'Status': 200, 'Content-Type': 'application/json'}, json.dumps(
+                    [{
+                        'description': 'List of books.',
+                        'resource_url': '%sbook/' % root_uri
+                    }, {
+                        'description': 'List of authors.',
+                        'resource_url': '%sauthor/' % root_uri
+                    }, {
+                        'description': 'Search in our database',
+                        'resource_url': '%ssearch/' % root_uri
+                    }])
+                )
+            },
             # Book list view contains a ``list`` of ``objects`` representing a
             # (small part of the) book.
             'book/': {

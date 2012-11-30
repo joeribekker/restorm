@@ -11,7 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   mock
+   clients
+   resources
+   mocking
 
 
 Indices and tables

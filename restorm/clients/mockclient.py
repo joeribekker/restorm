@@ -12,6 +12,7 @@ class MockResponse(list):
     content is simply returned as response and is usually a string but can be
     any type of object.
     
+    >>> from restorm.clients.mockclient import MockResponse
     >>> response = MockResponse({'Status': 200}, {'foo': 'bar'})
     >>> response.headers
     {'Status': 200}
@@ -30,6 +31,7 @@ class StringResponse(MockResponse):
     """
     A response with stringified content.
     
+    >>> from restorm.clients.mockclient import StringResponse
     >>> response = StringResponse({'Status': 200}, '{}')
     >>> response.content
     '{}'
@@ -43,6 +45,7 @@ class FileResponse(MockResponse):
     """
     A response with the contents of a file, read by absolute file path.
 
+    >>> from restorm.clients.mockclient import FileResponse
     >>> response = FileResponse({'Status': 200}, 'response.json')
 
     """
@@ -102,13 +105,16 @@ class MockClient(BaseMockClient, ClientMixin):
     Responses are popped from a queue. This means that if you add 3 responses,
     you can only make 3 requests before a ``ValueError`` is raised.
     
+    >>> from restorm.clients.mockclient import MockClient, StringResponse
     >>> desired_response = StringResponse({'Status': 200}, '{}')
-    >>> client = MockClient('http://mockserver/', responses=[desired_response,])
-    >>> response = client.get('/')
+    >>> mock_client = MockClient('http://mockserver/', responses=[desired_response,])
+    >>> response = mock_client.get('/') # Can be any URI.
     >>> response.content
     u'{}'
     >>> response.status_code
     200
+    >>> response = mock_client.get('/') # Another call.
+    ValueError: Ran out of responses when requesting: /
 
     """
     pass
@@ -130,7 +136,8 @@ class BaseMockApiClient(object):
         
         This is the only method that looks at ``self.responses``. Therefore,
         overriding this method also allows you to create a custom format for
-        this container variable.
+        this container variable or even mutate the ``responses`` variable based
+        on the request.
         """
         
         # Get mock response for URI (look for full URI and path URI).
@@ -173,6 +180,12 @@ class BaseMockApiClient(object):
         """
         Creates a server instance and returns it. The server instance has 
         access to this mock to provide the responses.
+        
+        >>> from restorm.clients.mockclient import MockApiClient, StringResponse
+        >>> mock_api_client = MockApiClient(responses={'/': {'GET': ({'Status': 200}, 'My homepage')}})
+        >>> server = mock_api_client.create_server('127.0.0.1', 8000)
+        >>> server.serve_forever()
+
         """
         if handler is None:
             MockHandler.mock_api = self
@@ -215,11 +228,12 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     of the available ``MockResponse`` (sub)classes to return the contents of a
     string or file.
     
-    The structure of a responses ``dict`` is::
+    The structure of the ``responses`` is::
     
         {<relative URI>: {<HTTP method>: ({<header key>: <header value>, ...}, <response content>)}}
     
-    >>> client = MockApiClient(responses={
+    >>> from restorm.clients.mockclient import MockApiClient, StringResponse
+    >>> mock_api_client = MockApiClient(responses={
     ...     'book/': {
     ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://localhost/api/book/1'}]),
     ...         'POST': ({'Status': 201, 'Location': 'http://localhost/api/book/2'}, ''),
@@ -229,7 +243,7 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     ...     'author/1': {'GET': FileResponse({'Status': 200}, 'response.json')}
     ... }, root_uri='http://localhost/api/')
     ...
-    >>> response = client.get('http://localhost/api/book/1')
+    >>> response = mock_api_client.get('http://localhost/api/book/1')
     >>> response.content
     {'id': 1, 'name': 'Dive into Python', 'author': 'http://localhost/api/author/1'}
     >>> response.status_code
