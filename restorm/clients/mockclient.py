@@ -11,6 +11,13 @@ class MockResponse(list):
     Main class for mocked responses. Headers can be provided as dict. The 
     content is simply returned as response and is usually a string but can be
     any type of object.
+    
+    >>> response = MockResponse({'Status': 200}, {'foo': 'bar'})
+    >>> response.headers
+    {'Status': 200}
+    >>> response.content
+    {'foo': 'bar'}
+
     """
     def __init__(self, headers, content):
         self.headers = headers
@@ -21,11 +28,12 @@ class MockResponse(list):
 
 class StringResponse(MockResponse):
     """
-    A response comming from a string.
+    A response with stringified content.
+    
+    >>> response = StringResponse({'Status': 200}, '{}')
+    >>> response.content
+    '{}'
 
-    **Example**
-
-    >>> desired_response = StringResponse({'Status': 200}, '{}')
     """
     def __init__(self, headers, content):
         super(StringResponse, self).__init__(headers, unicode(content))
@@ -33,11 +41,10 @@ class StringResponse(MockResponse):
 
 class FileResponse(MockResponse):
     """
-    A response comming from an absolute file path.
+    A response with the contents of a file, read by absolute file path.
 
-    **Example**
-    
-    >>> desired_response = FileResponse({'Status': 200}, 'response.json')
+    >>> response = FileResponse({'Status': 200}, 'response.json')
+
     """
     def __init__(self, headers, filepath):
         if not os.path.isfile(filepath):
@@ -62,7 +69,7 @@ class BaseMockClient(object):
     
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
         if self._response_index >= len(self.responses):
-            raise RuntimeError('Ran out of responses when requesting: %s' % uri)
+            raise ValueError('Ran out of responses when requesting: %s' % uri)
 
         if not uri.startswith(self.root_uri):
             urlparse.urljoin(self.root_uri, uri)
@@ -71,6 +78,7 @@ class BaseMockClient(object):
 
         # Get current queued mock response.
         response = self.responses[self._response_index]
+        self._response_index += 1
 
         # Set minimal response headers.
         response_headers = {
@@ -85,14 +93,15 @@ class BaseMockClient(object):
 class MockClient(BaseMockClient, ClientMixin):
     """
     A mock client, emulating the rest client. The client returns predefined 
-    responses.
+    responses. You can add any ``MockResponse`` sub class to the ``responses``
+    argument.
     
-    You can add fake response as either a StringResponse or a FileResponse. The
-    first argument of these classes should always be a dict of headers, the 
-    second argument is the content as string or file path respectively.
+    It doesn't matter what URI you request or what data you pass in the body,
+    the first response you added is just returned on the first request.
     
-    **Example**
-
+    Responses are popped from a queue. This means that if you add 3 responses,
+    you can only make 3 requests before a ``ValueError`` is raised.
+    
     >>> desired_response = StringResponse({'Status': 200}, '{}')
     >>> client = MockClient('http://mockserver/', responses=[desired_response,])
     >>> response = client.get('/')
@@ -100,6 +109,7 @@ class MockClient(BaseMockClient, ClientMixin):
     u'{}'
     >>> response.status_code
     200
+
     """
     pass
 
@@ -205,16 +215,25 @@ class MockApiClient(BaseMockApiClient, ClientMixin):
     of the available ``MockResponse`` (sub)classes to return the contents of a
     string or file.
     
-    **Example**
+    The structure of a responses ``dict`` is::
+    
+        {<relative URI>: {<HTTP method>: ({<header key>: <header value>, ...}, <response content>)}}
     
     >>> client = MockApiClient(responses={
-    ...     '/api/book/': {
+    ...     'book/': {
     ...         'GET': ({'Status': 200}, [{'id': 1, 'name': 'Dive into Python', 'resource_url': 'http://localhost/api/book/1'}]),
     ...         'POST': ({'Status': 201, 'Location': 'http://localhost/api/book/2'}, ''),
     ...     },
-    ...     '/api/book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
-    ...     '/api/author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://localhost/api/author/1'}])},
-    ...     '/api/author/1': {'GET': MockResponse({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
-    ... }, root_uri='http://localhost/')
+    ...     'book/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
+    ...     'author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://localhost/api/author/1'}])},
+    ...     'author/1': {'GET': FileResponse({'Status': 200}, 'response.json')}
+    ... }, root_uri='http://localhost/api/')
+    ...
+    >>> response = client.get('http://localhost/api/book/1')
+    >>> response.content
+    {'id': 1, 'name': 'Dive into Python', 'author': 'http://localhost/api/author/1'}
+    >>> response.status_code
+    200
+
     """
     pass
