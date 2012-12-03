@@ -1,4 +1,4 @@
-.. image:: https://secure.travis-ci.org/joeribekker/restorm.png?branch=develop
+.. image:: https://secure.travis-ci.org/joeribekker/restorm.png?branch=master
     :alt: Build Status
     :target: http://travis-ci.org/joeribekker/restorm
 
