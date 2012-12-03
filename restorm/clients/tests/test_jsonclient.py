@@ -6,11 +6,11 @@ from unittest2 import TestCase
 from restorm.clients.jsonclient import JSONClient, JSONClientMixin
 
 
-@mock.patch('httplib2.Http.request')
 class JSONClientTests(TestCase):
     def setUp(self):
         self.client = JSONClient()
         
+    @mock.patch('httplib2.Http.request')
     def test_get(self, request):
         request.return_value = ({'Status': 200, 'Content-Type': 'application/json'}, '{"foo": "bar"}')
         response = self.client.get(uri='http://localhost/api')
@@ -20,6 +20,7 @@ class JSONClientTests(TestCase):
         self.assertTrue('foo' in data)
         self.assertEqual(data['foo'], 'bar')
 
+    @mock.patch('httplib2.Http.request')
     def test_incorrect_content_type(self, request):
         request.return_value = ({'Status': 200, 'Content-Type': 'foobar'}, '{"foo": "bar"}')
         response = self.client.get(uri='http://localhost/api')
