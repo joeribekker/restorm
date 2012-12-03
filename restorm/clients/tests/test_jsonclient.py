@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import mock
 from unittest2 import TestCase
 
@@ -50,7 +52,7 @@ class JSONClientMixinTests(TestCase):
         self.assertEqual(original_data, deserialized_data)
     
     def test_complex_data(self):
-        original_data = {'a': ['b', 'c', 1, 2.3]}
+        original_data = {'a': ['b', 'c', 1, Decimal('2.3')]}
         
         serialized_data = self.mixin.serialize(original_data)
         self.assertEqual(serialized_data, '{"a": ["b", "c", 1, 2.3]}')
