@@ -18,6 +18,7 @@ changes = read_file('CHANGES.rst')
 
 install_requires = [
     'httplib2>=0.7.1',
+    'simplejson>=2.2.1'
 ]
 tests_require = [
     'nose',
@@ -25,10 +26,6 @@ tests_require = [
     'mock',
     'oauth2', # For Twitter example.
 ]
-
-
-if sys.version_info[:2] < (2, 5):
-    install_requires.append('simplejson>=2.2.1')
 
 
 setup(

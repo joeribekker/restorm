@@ -1,14 +1,15 @@
 from decimal import Decimal
+
 from restorm.clients.base import ClientMixin, BaseClient
 
 
 JSON_LIBRARY_FOUND = True
 try:
-    import json
+    # Prefer simplejson over standard library.
+    import simplejson as json
 except ImportError:
-    # Python 2.5 compatability.
     try:
-        import simplejson as json
+        import json
     except ImportError:
         JSON_LIBRARY_FOUND = False
 

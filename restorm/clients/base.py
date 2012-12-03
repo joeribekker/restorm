@@ -2,12 +2,6 @@ import logging
 import urlparse
 import httplib2
 
-try:
-    import json
-except ImportError:
-    # Python 2.5 compatability.
-    import simplejson as json
-
 
 logger = logging.getLogger(__name__)
 
