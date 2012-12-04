@@ -75,8 +75,6 @@ in JSON format.
             # ...
         ]
 
-.. begin-readme
-
 Create a client
 ---------------
 
@@ -176,7 +174,7 @@ by adding an instance of it to the ``objects`` attribute on the resource.
         class Meta:
             list = r'^book/$'
             item = r'^book/(?P<isbn>\d)$'
-            
+
 Bringing it all together
 ------------------------
 
@@ -191,7 +189,7 @@ pass the client to use as an argument to all manager functions (like ``get``,
     >>> book.data['title'] # Get the value of the key "name".
     u'Dive into Python'
     >>> book.data['author'] # Get the value of the key "author".
-    u'http://localhost/api/author/1'
+    u'http://www.example.com/api/author/1'
     >>> author = book.data.author # Perform a GET on the "author" resource.
     >>> author.data['name']
     u'Mark Pilgrim'
@@ -206,8 +204,6 @@ Our custom manager added a search function, let's use it:
 Since it's mocked, we could search for anything and the same response would come
 back over and over.
     
-.. end-readme
-
 .. note:: As you may have noticed, the response content contains actual Python 
     objects. The ``MockApiClient`` simply returns the content as is. If you 
     prefer using JSON, you can achieve the same behaviour with:
@@ -223,8 +219,8 @@ back over and over.
         client = MockJSONApiClient(
             responses={
                 # Note the difference. The content is now JSON.
-                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://localhost/api/author/1"}',
+                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
                 # ...
             },
-            root_uri='http://localhost/api/'
+            root_uri='http://www.example.com/api/'
         )
