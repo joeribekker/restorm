@@ -34,8 +34,8 @@ Features
 Quick start
 ===========
 
-*This is a compressed version of the tutorial. The full documentation can be
-found `here <https://restorm.readthedocs.org>`_*
+This is a compressed version of the tutorial. The full documentation can be 
+found `here <https://restorm.readthedocs.org>`_.
 
 Create a client
 ---------------
