@@ -18,18 +18,14 @@ changes = read_file('CHANGES.rst')
 
 install_requires = [
     'httplib2>=0.7.1',
+    'simplejson>=2.2.1'
 ]
 tests_require = [
     'nose',
     'unittest2',
     'mock',
+    'oauth2', # For Twitter example.
 ]
-examples_require = [
-    'oauth2',
-]
-
-if sys.version_info[:2] < (2, 5):
-    install_requires.append('simplejson>=2.2.1')
 
 
 setup(
@@ -40,13 +36,8 @@ setup(
     packages=find_packages(exclude=('tests', 'examples')),
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={
-        'test': tests_require,
-        'examples': examples_require,
-    },
     include_package_data=True,
     zip_safe=False,
-    test_suite='nose.collector',
 
     # Metadata for PyPI.
     description='RestORM allows you to interact with resources as if they were objects.',

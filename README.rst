@@ -1,10 +1,13 @@
+.. image:: https://secure.travis-ci.org/joeribekker/restorm.png?branch=master
+    :alt: Build Status
+    :target: http://travis-ci.org/joeribekker/restorm
+
 RestORM
 =======
 
 RestORM allows you to interact with resources as if they were objects (object
 relational mapping), mock entire webservices and incorporate custom client
 logic.
-
 
 Description
 -----------
@@ -141,5 +144,6 @@ by itself, I consider unit testing to be essential during development.
 
 Performing the unit tests yourself::
 
-    python setup.py test
+    pip install nose
+    python setup.py nosetest
 

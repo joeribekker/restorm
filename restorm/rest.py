@@ -1,8 +1,4 @@
-try:
-    import json
-except ImportError:
-    # Python 2.5 compatability.
-    import simplejson as json
+from restorm.clients.jsonclient import json
 
 
 class RestObject(object):
