@@ -6,116 +6,50 @@ RestORM
 =======
 
 RestORM allows you to interact with resources as if they were objects (object
-relational mapping), mock entire webservices and incorporate custom client
-logic.
+relational mapping), mock an entire API and incorporate custom client logic.
 
 Description
 -----------
 
-Most RESTful webservices are very easy to access with very little code.
-RestORM is just a small layer on top of ``httplib2.Http`` to get a response 
-from a webservice. However, instead of regular Python ``dict`` objects, you'll
-get a ``dict``-like object that knows how to access related resources as well.
+Most RESTful API's are very easy to access with very little code. RestORM is 
+just a small layer on top of ``httplib2.Http`` to get a response from an API.
+However, instead of regular Python ``dict`` objects, you'll get a ``dict``-like
+object that knows how to access related resources as well.
 
 Until a version 1.0 release, backwards incompatible changes may be introduced
-in future 0.x versions.
+in future 0.x versions. Currently, RestORM works on Python 2.5+ with Python 3
+support on its way.
 
 Features
 --------
 
-* Object relational mapping of webservice resources.
+* Object relational mapping of API resources (Django-like but does not depend on
+  Django at all).
 * Flexible client architecture that can be used with your own or third party
   clients (like oauth).
-* Extensive mocking module allows you to mock webservice responses, or even 
-  complete webservices.
+* Extensive mocking module allows you to mock API responses, or even 
+  complete API's.
 * Examples for Twitter and Flickr API.
 
-Getting started
-===============
+Tutorial
+========
 
-Create a mock webservice
-------------------------
+.. include:: docs/tutorial.rst
+   :start-after: begin-readme
+   :end-before: end-readme
 
-In order to test your client, you can emulate a whole webservice using the
-``MockApiClient``. However, sometimes it's faster or easier to use a single, 
-predefined response, using the ``MockClient`` and ``MockResponse`` 
-(sub)classes.
+Install
+=======
 
-You can also use ``FileResponse`` class to return the contents of a file as 
-response in combination with the ``MockApiClient``.
+RestORM is on PyPI so you can simply use::
 
-The mock webservice below contains a list of books and a list of authors. To 
-keep it simple, both lists contain only 1 item:
+    $ pip install restorm
 
-.. sourcecode:: python
+If you want the latest development version, get the code from Github::
 
-    from restorm.clients.mockclient import MockApiClient
-    
-    client = MockApiClient(
-        responses={
-            'book/': {
-                'GET': ({'Status': 200}, [{'id': 1, 'title': 'Dive into Python', 'resource_url': 'http://localhost/api/book/1'}]),
-                'POST': ({'Status': 201, 'Location': 'http://www.localhost/api/book/2'}, ''),
-            },
-            'book/1': {'GET': ({'Status': 200}, {'id': 1, 'title': 'Dive into Python', 'author': 'http://localhost/api/author/1'})},
-            'author/': {'GET': ({'Status': 200}, [{'id': 1, 'name': 'Mark Pilgrim', 'resource_url': 'http://localhost/author/1'}])},
-            'author/1': {'GET': ({'Status': 200}, {'id': 1, 'name': 'Mark Pilgrim'})}
-        },
-        root_uri='http://localhost/api/'
-    )
-
-Define resources
-----------------
-
-Setup your client side resource definitions:
-
-.. sourcecode:: python
-
-    from restorm.resource import Resource
-    
-    class Book(Resource):
-        class Meta:
-            list = r'^book/$'
-            item = r'^book/(?P<id>\d)$'
-
-Make it work
-------------
-
-You can simply access the ``Book`` resource and related resources:
-
-.. sourcecode:: python
-
-    >>> book = Book.objects.get(id=1, client=client) # Get book with ID 1.
-    >>> book.data['title'] # Get the value of the key "name".
-    u'Dive into Python'
-    >>> book.data['author'] # Get the value of the key "author".
-    u'http://localhost/api/author/1'
-    >>> author = book.data.author # Perform a GET on the "author" resource.
-    >>> author.data['name']
-    u'Mark Pilgrim'
-
-
-.. note:: As you may have noticed, the response content contains actual Python 
-    objects. The ``MockApiClient`` simply returns the content as is. If you 
-    prefer using JSON, you can achieve the same behaviour with:
-
-.. sourcecode:: python
-
-        from restorm.clients.mockclient import BaseMockApiClient
-        from restorm.clients.jsonclient import JSONClientMixin
-        
-        class MockJSONApiClient(BaseMockApiClient, JSONClientMixin):
-            pass
-            
-        client = MockJSONApiClient(
-            responses={
-                # Note the difference. The content is now JSON.
-                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://localhost/api/author/1"}',
-                # ...
-            },
-            root_uri='http://localhost/api/'
-        )
-
+    $ git clone git://github.com/joeribekker/restorm.git
+    $ cd restorm
+    $ python setup.py install
 
 Contribute
 ==========

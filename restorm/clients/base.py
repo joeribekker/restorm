@@ -60,8 +60,15 @@ class Response(dict):
 
 class ClientMixin(object):
     """
-    This mixin contains ``MIME_TYPE`` which is ``None`` by default.
+    This mixin contains the attribute ``MIME_TYPE`` which is ``None`` by
+    default. Subclasses can set it to some mime-type that will be used as 
+    ``Content-Type`` and ``Accept`` header in requests.
+    
+    If the ``MIME_TYPE`` is also found in the ``Content-Type`` response headers,
+    the response contents will be deserialized.
     """
+    root_uri = ''
+
     MIME_TYPE = None
     
     def serialize(self, data):
@@ -99,6 +106,9 @@ class ClientMixin(object):
         return data
     
     def create_request(self, uri, method, body=None, headers=None):
+        """
+        Returns a ``Request`` object.
+        """
         if not uri.startswith(self.root_uri):
             uri = urlparse.urljoin(self.root_uri, uri)
 
@@ -116,6 +126,9 @@ class ClientMixin(object):
         return Request(uri, method, data, headers)
     
     def create_response(self, response_headers, response_content, request):
+        """
+        Returns a ``Response`` object.
+        """
         response = Response(self, response_headers, response_content, request)
 
         if not self.MIME_TYPE or ('Content-Type' in response and response['Content-Type'].startswith(self.MIME_TYPE)):
@@ -124,31 +137,53 @@ class ClientMixin(object):
         return response 
 
     def get(self, uri):
+        """
+        Convenience method that performs a GET-request.
+        """
         return self.request(uri, 'GET')
 
     def post(self, uri, data):
+        """
+        Convenience method that performs a POST-request.
+        """
         return self.request(uri, 'POST', data)
 
     def put(self, uri, data):
+        """
+        Convenience method that performs a PUT-request.
+        """
         return self.request(uri, 'PUT', data)
 
     def delete(self, uri):
+        """
+        Convenience method that performs a DELETE-request.
+        """
         return self.request(uri, 'DELETE')
 
 
 class BaseClient(httplib2.Http):
     """
-    Simple REST client based on ``httplib2.Http``.
+    Simple RESTful client based on ``httplib2.Http``.
     """
-    root_uri = ''
-    
     def __init__(self, *args, **kwargs):
+        """
+        Takes one additional argument ``root_uri``. All other arguments are 
+        passed to the ``httplib2.Http`` constructor.
+        """
         if 'root_uri' in kwargs:
             self.root_uri = kwargs.pop('root_uri')
 
         super(BaseClient, self).__init__(*args, **kwargs)
     
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
+        """
+        Creates a ``Request`` object by calling 
+        ``self.create_request(uri, method, body, headers)`` and performs the low
+        level HTTP-request using this request object. A ``Response`` object is
+        created with the data returned from the request, by calling
+        ``self.create_response(response_headers, response_content, request)``
+        and is returned.
+        """
         # Create request.
         request = self.create_request(uri, method, body, headers)
 

@@ -1,25 +1,18 @@
-.. RestORM documentation master file, created by
-   sphinx-quickstart on Sat Nov 24 09:22:37 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to RestORM!
+===================
 
-Welcome to RestORM's documentation!
-===================================
+.. image:: https://secure.travis-ci.org/joeribekker/restorm.png?branch=master
+    :alt: Build Status
+    :target: http://travis-ci.org/joeribekker/restorm
 
-Contents:
+RestORM allows you to interact with :doc:`resources <resources>` as if they were
+objects (object relational mapping), :doc:`mock <mocking>` an entire API and 
+incorporate custom :doc:`client <clients>` logic.
 
 .. toctree::
    :maxdepth: 2
 
+   tutorial
    clients
    resources
    mocking
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

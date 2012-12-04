@@ -17,7 +17,7 @@ Where you would normally have::
     ...         item = r'^book/(?P<isbn>\w+)$'
 
     >>> from restorm.clients.jsonclient import JSONClient
-    >>> client = JSONClient(root_uri='http://www.library.com/api/')
+    >>> client = JSONClient(root_uri='http://www.example.com/api/')
 
     >>> book = Book.objects.get(isbn='978-1441413024', client=client)
     >>> book.data['title']
@@ -27,8 +27,8 @@ You can replace it all with mocking behaviour that does not rely on actual
 communication with the external API::
 
     >>> from restorm.clients.mockclient import MockApiClient
-    >>> mock_api_client = MockApiClient(
-    ...     root_uri='http://localhost/api/',
+    >>> mock_client = MockApiClient(
+    ...     root_uri='http://www.example.com/api/',
     ...     responses={
     ...         'book/978-1441413024': {
     ...             'GET': ({'Status': 200}, {'title': 'Dive into Python'})
@@ -36,7 +36,7 @@ communication with the external API::
     ...     }
     ... )
 
-    >>> book = Book.objects.get(isbn='978-1441413024', client=mock_api_client)
+    >>> book = Book.objects.get(isbn='978-1441413024', client=mock_client)
     >>> book.data['title']
     u'Dive into Python'
 
@@ -78,7 +78,8 @@ application talk to it.
 Example: Library API
 ~~~~~~~~~~~~~~~~~~~~
 
-An extensive example is given in the ``restorm.examples.mock`` module.
+An extensive example is given in the ``restorm.examples.mock`` module that 
+extends the mock API from the :doc:`tutorial`.
 
 .. automodule:: restorm.examples.mock.api
 
