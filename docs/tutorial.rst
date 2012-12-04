@@ -1,10 +1,10 @@
-.. _tutorial:
-
 Tutorial
 ========
 
 In this tutorial we'll walk you through the creation of a simple client-side
 implementation of a RESTful library API. This shows you the basics of RestORM.
+This example is included in the source code of RestORM and has more features,
+see: ``restorm.examples.mock``.
 
 Let's examine the server-side of the library API. Normally you would read the
 documentation of a RESTful API since there is no standard (yet) to describe a 
@@ -13,8 +13,9 @@ RESTful API and have a computer generate a proxy.
 The library API
 ---------------
 
-Below, you'll find an example of how the library API could be documented. For 
-the sake of this tutorial, it doesn't expose a lot of features:
+Below, you'll find an example of how the library API could be documented. The
+library contains books and each book is ofcourse written by an author. For the 
+sake of this tutorial, it doesn't expose a lot of features:
 
 Welcome to the documentation for our library API! All resources are available on
 ``http://www.example.com/api/``. No authentication is required and responses are
@@ -138,7 +139,7 @@ We start with the most basic resource, the ``Author`` resource:
     class Author(Resource):
         class Meta:
             list = r'^author/$'
-            item = r'^author/(?P<id>\d)$'
+            item = r'^author/(?P<id>\d+)$'
 
 We subclass ``Resource`` and add an inner ``Meta`` class. In the ``Meta`` class
 we add two attributes that are internally used by the ``ResourceManager`` to
@@ -203,7 +204,7 @@ Our custom manager added a search function, let's use it:
 
 Since it's mocked, we could search for anything and the same response would come
 back over and over.
-    
+
 .. note:: As you may have noticed, the response content contains actual Python 
     objects. The ``MockApiClient`` simply returns the content as is. If you 
     prefer using JSON, you can achieve the same behaviour with:

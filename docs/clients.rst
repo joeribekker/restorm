@@ -3,7 +3,7 @@ Clients
 
 At the heart of RestORM you have a ``Client``. The client simply allows you to
 communicate with an API and the one RestORM uses is built on top of the 
-excellent _`httplib2 library <http://code.google.com/p/httplib2/>`. However, you
+excellent `httplib2 library <http://code.google.com/p/httplib2/>`_. However, you
 are free to use any HTTP client library as long as you add the RestORM mixins.
 
 Create a client
@@ -69,7 +69,7 @@ The above client doesn't do much but it shows how to create your own client:
     >>> response.headers
     {'Status': 200}
     >>> response.request.uri
-    '/hi/'
+    '/hello/'
 
 You can override any of the ``ClientMixin`` functions to add custom behaviour:
 
@@ -95,6 +95,16 @@ You can override any of the ``ClientMixin`` functions to add custom behaviour:
             })
             return super(MyClient, self).create_response(response_headers, response_content, request)
 
+.. sourcecode:: python
+
+    >>> client = MyClient()
+    >>> response = client.get('hello/')
+    >>> response.content
+    'Hello world!'
+    >>> response.headers
+    {'Status': 200, 'X-Response-Updated-By': 'MyClient'}
+    >>> response.request.uri
+    '/hello/'
 
 Using different HTTP client libraries
 -------------------------------------
@@ -132,9 +142,10 @@ and override the ``request`` method to make a request using OAuth:
             # Create response.
             return self.create_response(response_headers, response_content, request)
 
-Once we have this, we can 
-            
->>> consumer = oauth.Consumer(key='YOUR_KEY', secret='YOUR_SECRET')
->>> token = oauth.Token(key='YOUR_TOKEN', secret='YOUR_TOKEN_SECRET')
->>> client = OauthClient(consumer, token)
+Once we have this, we can do:
 
+.. sourcecode:: python
+
+    >>> consumer = oauth.Consumer(key='YOUR_KEY', secret='YOUR_SECRET')
+    >>> token = oauth.Token(key='YOUR_TOKEN', secret='YOUR_TOKEN_SECRET')
+    >>> client = OauthClient(consumer, token)

@@ -11,10 +11,11 @@ with ``Resource`` classes. Just pass your mock client to it.
 
 Where you would normally have::
 
-    >>> from restorm.resource import Resource
-    >>> class Book(Resource):
-    ...     class Meta:
-    ...         item = r'^book/(?P<isbn>\w+)$'
+    from restorm.resource import Resource
+
+    class Book(Resource):
+        class Meta:
+            item = r'^book/(?P<isbn>\w+)$'
 
     >>> from restorm.clients.jsonclient import JSONClient
     >>> client = JSONClient(root_uri='http://www.example.com/api/')
@@ -26,15 +27,15 @@ Where you would normally have::
 You can replace it all with mocking behaviour that does not rely on actual
 communication with the external API::
 
-    >>> from restorm.clients.mockclient import MockApiClient
-    >>> mock_client = MockApiClient(
-    ...     root_uri='http://www.example.com/api/',
-    ...     responses={
-    ...         'book/978-1441413024': {
-    ...             'GET': ({'Status': 200}, {'title': 'Dive into Python'})
-    ...         }
-    ...     }
-    ... )
+    from restorm.clients.mockclient import MockApiClient
+    mock_client = MockApiClient(
+        root_uri='http://www.example.com/api/',
+        responses={
+            'book/978-1441413024': {
+                'GET': ({'Status': 200}, {'title': 'Dive into Python'})
+            }
+        }
+    )
 
     >>> book = Book.objects.get(isbn='978-1441413024', client=mock_client)
     >>> book.data['title']
