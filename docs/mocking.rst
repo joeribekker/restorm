@@ -118,4 +118,3 @@ With the ``MockApiClient`` you can also use these mixins:
 
     class MockApiJSONClient(BaseMockApiClient, JSONClientMixin):
         pass
-
