@@ -11,6 +11,7 @@ Changes
 - Added ``root_uri`` parameter to ``Client`` constructor.
 - Added initial XML client implemention (alpha).
 - Added initial documentation.
+- Added simplejson 2.2.1 or above as required library.
 
 0.1
 ---
