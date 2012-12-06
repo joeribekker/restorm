@@ -151,7 +151,7 @@ Related resources
 You can access all API resources by creating a ``Resource`` class for each API
 resource.
 
-..sourecode:: python
+.. sourecode:: python
 
     class Author(Resource):
         class Meta:
@@ -166,7 +166,7 @@ resource.
     
 RestORM is aware of the API endpoint URL in the book resource. We can simply do:
 
-..sourcecode:: python
+.. sourcecode:: python
 
     >>> book = Book.objects.get(isbn=1)
     >>> book.data.author.data['name']
