@@ -11,10 +11,12 @@ relational mapping), mock an entire API and incorporate custom client logic.
 Description
 -----------
 
-RestORM structures the way you access a RESTful API and allows you to access
-related resources. On top of that, you can easily mock an entire API and replace
-the real client with a mock version in unit tests. RestORM is very extensible
-but offers many functionalities out of the box to get up and running quickly.
+RestORM structures the way you access a RESTful API and allows you to easily
+access related resources. It tries to be as generic as possible so it's not
+tailored to any specific API or server-side API library. With RestORM you can
+mock an entire API and replace the real client with a mock version in unit
+tests. RestORM is very extensible but offers many functionalities out of the box
+to get you up and running quickly.
 
 Currently, RestORM works on Python 2.5+ with Python 3 support on its way.
 

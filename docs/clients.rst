@@ -106,6 +106,10 @@ You can override any of the ``ClientMixin`` functions to add custom behaviour:
     >>> response.request.uri
     '/hello/'
 
+RestORM can handle JSON as response format from RESTful API's. Implementing your
+own format requires you to override the ``serialize`` and ``deserialize``
+function in your own client class.
+
 Using different HTTP client libraries
 -------------------------------------
 

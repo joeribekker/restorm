@@ -209,19 +209,19 @@ back over and over.
     objects. The ``MockApiClient`` simply returns the content as is. If you 
     prefer using JSON, you can achieve the same behaviour with:
 
-.. sourcecode:: python
+    .. sourcecode:: python
 
-        from restorm.clients.mockclient import BaseMockApiClient
-        from restorm.clients.jsonclient import JSONClientMixin
-        
-        class MockJSONApiClient(BaseMockApiClient, JSONClientMixin):
-            pass
+            from restorm.clients.mockclient import BaseMockApiClient
+            from restorm.clients.jsonclient import JSONClientMixin
             
-        client = MockJSONApiClient(
-            responses={
-                # Note the difference. The content is now JSON.
-                'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
-                # ...
-            },
-            root_uri='http://www.example.com/api/'
-        )
+            class MockJSONApiClient(BaseMockApiClient, JSONClientMixin):
+                pass
+                
+            client = MockJSONApiClient(
+                responses={
+                    # Note the difference. The content is now JSON.
+                    'book/1': {'GET': ({'Status': 200, 'Content-Type': 'application/json'}, '{"id": 1, "title": "Dive into Python", "author": "http://www.example.com/api/author/1"}',
+                    # ...
+                },
+                root_uri='http://www.example.com/api/'
+            )

@@ -78,6 +78,25 @@ class ResourceManager(object):
             return self._options
 
     def all(self, client=None, query=None, uri=None, **kwargs):
+        """
+        Returns the raw response for the list of objects. You should pass all
+        arguments required by the resource URL pattern ``collection``, as
+        specified in the ``Meta`` class of the resource.
+        
+        :param client: The client to retrieve the object from the API. By 
+            default, the default client is used. If no client and no default 
+            client are specified, a ``ValueError`` is raised.
+        :param query: A ``dict`` with additional query string arguments. An 
+            empty ``dict`` by default.
+        :param uri: Rather than passing the resource URL pattern arguments, you
+            can also provide a complete URL. This URL must match the resource 
+            URL pattern.
+        
+        .. sourcecode:: python
+            
+            >>> Book.objects.all() # Returns a raw response.
+
+        """
         client = client or settings.DEFAULT_CLIENT
         if client is None:
             raise ValueError('A client instance must be provided or DEFAULT_CLIENT must be set in settings.')
@@ -96,6 +115,26 @@ class ResourceManager(object):
         return data
     
     def get(self, client=None, query=None, uri=None, **kwargs):
+        """
+        Returns the object matching the given lookup parameters. You should pass
+        all arguments required by the resource URL pattern ``item``, as 
+        specified in the ``Meta`` class of the resource.
+        
+        :param client: The client to retrieve the object from the API. By 
+            default, the default client is used. If no client and no default 
+            client are specified, a ``ValueError`` is raised.
+        :param query: A ``dict`` with additional query string arguments. An 
+            empty ``dict`` by default.
+        :param uri: Rather than passing the resource URL pattern arguments, you
+            can also provide a complete URL. This URL must match the resource 
+            URL pattern.
+        
+        .. sourcecode:: python
+            
+            >>> Book.objects.get(isbn=1)
+            <Book: http://www.example.com/api/book/1>
+
+        """
         client = client or settings.DEFAULT_CLIENT
         if client is None:
             raise ValueError('A client instance must be provided or DEFAULT_CLIENT must be set in settings.')
@@ -263,8 +302,11 @@ class Resource(object):
 
         self.data = restify(data, self)
 
+    def __unicode__(self):
+        return self.absolute_url
+    
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
+        return '<%s: %s>' % (self.__class__.__name__, self.__unicode__())
 
 
 class SimpleResource(object):
@@ -283,5 +325,8 @@ class SimpleResource(object):
         
         self.data = data
 
+    def __unicode__(self):
+        return self.absolute_url
+    
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self.absolute_url)
+        return '<%s: %s>' % (self.__class__.__name__, self.__unicode__())
