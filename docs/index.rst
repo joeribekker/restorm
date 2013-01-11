@@ -80,7 +80,7 @@ by itself, I consider unit testing to be essential during development.
 Performing the unit tests yourself::
 
     pip install nose
-    python setup.py nosetest
+    python setup.py nosetests
 
 .. note::
 
