@@ -151,7 +151,7 @@ Related resources
 You can access all API resources by creating a ``Resource`` class for each API
 resource.
 
-.. sourecode:: python
+.. sourcecode:: python
 
     class Author(Resource):
         class Meta:
