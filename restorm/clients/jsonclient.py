@@ -14,11 +14,17 @@ except ImportError:
         JSON_LIBRARY_FOUND = False
 
 
-class DecimalEncoder(json.JSONEncoder):
+class CustomEncoder(json.JSONEncoder):
+    def encode(self, o):
+        from restorm.rest import RestObject
+        if isinstance(o, RestObject):
+            o = o._obj
+        return super(CustomEncoder, self).encode(o)
+
     def _iterencode(self, o, markers=None):
         if isinstance(o, Decimal):
             return (str(o) for o in [o])
-        return super(DecimalEncoder, self)._iterencode(o, markers)
+        return super(CustomEncoder, self)._iterencode(o, markers)
 
 
 class JSONClientMixin(ClientMixin):
@@ -27,7 +33,7 @@ class JSONClientMixin(ClientMixin):
     def serialize(self, data):
         if data is None:
             return ''
-        return json.dumps(data, cls=DecimalEncoder)
+        return json.dumps(data, cls=CustomEncoder)
     
     def deserialize(self, data):
         if data == '':

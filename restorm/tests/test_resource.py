@@ -1,7 +1,7 @@
 from restorm.rest import RestObject
 from unittest2 import TestCase
 
-from restorm.examples.mock.api import LibraryApiClient
+from restorm.examples.mock.api import LibraryApiClient, TicketApiClient
 from restorm.resource import ResourceManager, ResourceOptions, Resource, SimpleResource
 
 
@@ -183,6 +183,32 @@ class ResourceTests(TestCase):
         self.assertIsInstance(author, Resource)
         self.assertEqual(author_url, author.absolute_url)
         self.assertEqual(author.data['name'], 'Mark Pilgrim')
+
+
+class ResourceCreateAndUpdateTests(TestCase):
+
+    def setUp(self):
+        self.client = TicketApiClient()
+
+    def test_create_resource(self):
+        class Issue(Resource):
+            class Meta:
+                list = r'^issue/$'
+                item = r'^issue/(?P<id>\d+)$'
+
+        issue = Issue.objects.create(client=self.client, data={'title': 'Cannot create an issue', 'description': 'This needs more work.'})
+        self.assertEqual(issue.data['title'], 'Cannot create an issue')
+        self.assertEqual(issue.data['description'], 'This needs more work.')
+
+    def test_update_resource(self):
+        class Issue(Resource):
+            class Meta:
+                list = r'^issue/$'
+                item = r'^issue/(?P<id>\d+)$'
+
+        issue = Issue.objects.get(client=self.client, id=2)
+        issue.data['description'] = 'This needs more work.'
+        issue.save()
 
 
 class SimpleResourceTests(TestCase):

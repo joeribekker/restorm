@@ -152,6 +152,36 @@ class ResourceManager(object):
         data = rp.clean(response)
         return self.object_class(data, client=client, absolute_url=response.request.uri)
 
+    def create(self, client=None, data=None):
+        """
+        Roughly equivalent to a POST request, this methods creates a new entry.
+
+        :param client: The client to retrieve the object from the API. By
+            default, the default client is used. If no client and no default
+            client are specified, a ``ValueError`` is raised.
+        :param data: Any Python object that you want to have serialized and
+            stored.
+        """
+        client = client or settings.DEFAULT_CLIENT
+        if client is None:
+            raise ValueError('A client instance must be provided or DEFAULT_CLIENT must be set in settings.')
+
+        rp = ResourcePattern.parse(self.options.list)
+        absolute_url = rp.get_absolute_url(root=self.options.root)
+
+        response = client.post(absolute_url, data)
+
+        # Although 201 is the best HTTP status code for a valid POST response.
+        if response.status_code in [200, 201, 204]:
+            if 'Location' in response:
+                return self.get(client, uri=response['Location'])
+            elif response.content:
+                return response.content
+            else:
+                return None
+        else:
+            raise RestServerException('Cannot create "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
+
 
 class RelatedResource(object):
     def __init__(self, field, resource):
@@ -308,6 +338,26 @@ class Resource(object):
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.__unicode__())
 
+    def save(self):
+        """
+        Performs a PUT request to update the object.
+
+        No guarantees are given to what this method actually returns due to the
+        freedom of API implementations. If there is a body in the response, the
+        contents of this body is returned, otherwise ``None``.
+        """
+
+        response = self.client.put(self.absolute_url, self.data)
+
+        # Although 204 is the best HTTP status code for a valid PUT response.
+        if response.status_code in [200, 201, 204]:
+            if response.content:
+                return response.content
+            else:
+                return None
+        else:
+            raise RestServerException('Cannot create "%s" (%d): %s' % (response.request.uri, response.status_code, response.content))
+
 
 class SimpleResource(object):
     """
@@ -330,3 +380,6 @@ class SimpleResource(object):
     
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.__unicode__())
+
+    def save(self):
+        self.client.put(self.absolute_url, self.data)

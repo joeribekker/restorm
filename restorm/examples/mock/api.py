@@ -15,7 +15,7 @@ requests from the console:
 You can also start it as a server and connect to it with your browser, or let
 your application connect to it::
 
-    $ python -m restorm.examples.mock.serv 127.0.0.1:8000
+    $ python -m restorm.examples.mock.library_serv 127.0.0.1:8000
     
 Shut it down with CTRL-C. The above Python script basically does:
 
@@ -160,3 +160,57 @@ class LibraryApiClient(BaseMockApiClient, JSONClientMixin):
             }
         }
         super(LibraryApiClient, self).__init__(responses=responses, root_uri=root_uri)
+
+
+class TicketApiClient(BaseMockApiClient, JSONClientMixin):
+    """
+    Mock issue ticket API.
+
+    .. note:: This is a very inconsistent webservice. All resources are for
+       demonstration purposes and show different kinds of ReST structures.
+
+    """
+    def __init__(self, root_uri=None):
+        # Creating a mock server from this MockApiClient, related resource
+        # URI's need to show the same IP address and port.
+        if not root_uri:
+            root_uri = 'http://localhost/api/'
+
+        responses = {
+            # Issue list view contains a ``list`` of ``objects``.
+            'issue/': {
+                'GET': ({'Status': 200, 'Content-Type': 'application/json'}, json.dumps(
+                    [{
+                         'id': 1,
+                         'title': 'Cannot update an issue',
+                         'resource_url': '%sissue/1' % root_uri
+                     }, {
+                         'id': 2,
+                         'title': 'Cannot create an issue',
+                         'resource_url': '%sissue/2' % root_uri
+                     }])
+                ),
+                'POST': ({'Status': 201, 'Content-Type': 'application/json', 'Location': '%sissue/2' % root_uri}, json.dumps(''))
+            },
+            # Issue item view contains a single ``object`` representing an issue.
+            'issue/1': {
+                'GET': ({'Status': 200, 'Content-Type': 'application/json'}, json.dumps(
+                    {
+                        'id': 1,
+                        'title': 'Cannot update an issue',
+                        'description': 'This needs more work.',
+                    })
+                )
+            },
+            'issue/2': {
+                'GET': ({'Status': 200, 'Content-Type': 'application/json'}, json.dumps(
+                    {
+                        'id': 2,
+                        'title': 'Cannot create an issue',
+                        'description': 'This needs more work.',
+                    })
+                ),
+                'PUT': ({'Status': 204, 'Content-Type': 'application/json'}, json.dumps(''))
+            },
+        }
+        super(TicketApiClient, self).__init__(responses=responses, root_uri=root_uri)

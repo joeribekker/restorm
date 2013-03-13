@@ -7,7 +7,7 @@ def main(argv):
     """
     Start with::
     
-        python -m restorm.examples.mock.serv [port or address:port]
+        python -m restorm.examples.mock.library_serv [port or address:port]
 
     """
     ip_address = '127.0.0.1'
@@ -26,7 +26,7 @@ def main(argv):
     api = LibraryApiClient('http://%s:%s/api/' % (ip_address, port))
     server = api.create_server(ip_address, int(port))
 
-    print 'Mock library webservice is running at http://%s:%s' % (ip_address, port)
+    print 'Mock library webservice is running at http://%s:%s/api/' % (ip_address, port)
     print 'Quit the server with CTRL-C.'
     try:
         server.serve_forever()
