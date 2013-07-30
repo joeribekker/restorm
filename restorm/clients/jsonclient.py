@@ -4,27 +4,26 @@ from restorm.clients.base import ClientMixin, BaseClient
 
 
 JSON_LIBRARY_FOUND = True
+# Prefer json over simplejson
 try:
-    # Prefer simplejson over standard library.
-    import simplejson as json
+    import json
 except ImportError:
     try:
-        import json
+        import simplejson as json
     except ImportError:
         JSON_LIBRARY_FOUND = False
 
 
 class CustomEncoder(json.JSONEncoder):
-    def encode(self, o):
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return float(o)
+
         from restorm.rest import RestObject
         if isinstance(o, RestObject):
-            o = o._obj
-        return super(CustomEncoder, self).encode(o)
+            return o._obj
 
-    def _iterencode(self, o, markers=None):
-        if isinstance(o, Decimal):
-            return (str(o) for o in [o])
-        return super(CustomEncoder, self)._iterencode(o, markers)
+        super(CustomEncoder, self).default(o)
 
 
 class JSONClientMixin(ClientMixin):
